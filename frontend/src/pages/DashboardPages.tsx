@@ -199,14 +199,16 @@ export function MT5Page() {
         <div>
           <p className="eyebrow">MT5</p>
           <h1>Cloud bridge accounts</h1>
-          <p>Connect the provider account that can send orders to the user's MT5 trading account. The exact token/account ID comes from your MT5 bridge provider.</p>
+          <p>Connect the cloud provider account that can read status and send checked orders to the user's MT5 trading account. Use demo accounts first, then go live only after the bridge health check and order schema are confirmed.</p>
         </div>
       </div>
       <form className="panel" onSubmit={submit}>
         <div className="help-list">
           <span>Name: internal label, like Main Forex Account.</span>
-          <span>Provider account ID: the account/login ID from your MT5 bridge provider.</span>
-          <span>Bridge token: provider API token or account token. Keep it secret.</span>
+          <span>Provider account ID: copy this from the connected account inside your MT5 bridge provider dashboard.</span>
+          <span>Bridge token: provider API token or account token for that MT5 account. Keep it secret.</span>
+          <span>If `MT5_BRIDGE_API_KEY` is empty on the server, SignalBridge stays in mock bridge mode and will not place live provider orders.</span>
+          <span>After connecting, click Health check and confirm balance/equity/status before creating automation rules.</span>
         </div>
         <label>Name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
         <label>Provider account ID<input value={form.provider_account_id} onChange={(event) => setForm({ ...form, provider_account_id: event.target.value })} /></label>
@@ -330,11 +332,14 @@ export function SetupGuidePage() {
         <article className="section-card">
           <h2>2. MT5 bridge credentials</h2>
           <ol className="guide-list">
+            <li>Start with a demo MT5 trading account.</li>
             <li>Choose the cloud MT5 bridge/provider the business will use.</li>
-            <li>In that provider, connect the user's MT5 trading account.</li>
-            <li>Copy the provider account/login ID into Provider account ID.</li>
-            <li>Copy the provider account token/API token into Bridge token.</li>
-            <li>Set provider-wide `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` in `backend/.env` when going live.</li>
+            <li>In the provider dashboard, add the user's MT5 account with broker server, MT5 login number, and the password the provider requires.</li>
+            <li>Wait until the provider says the account is connected, deployed, or synchronized.</li>
+            <li>Copy the provider's connected account ID into Provider account ID.</li>
+            <li>Copy the provider API token or account token into Bridge token.</li>
+            <li>Set provider-wide `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` in `backend/.env`, then restart the backend.</li>
+            <li>Click Health check in MT5 Accounts and confirm connected status, balance, or equity before automation.</li>
           </ol>
         </article>
 
@@ -355,7 +360,20 @@ export function SetupGuidePage() {
             <li>`JWT_SECRET`: long random string for login tokens.</li>
             <li>`ENCRYPTION_KEY`: Fernet key for Telegram sessions and MT5 tokens.</li>
             <li>`ALLOWED_ORIGINS`: server IP/domain, such as `http://129.146.112.0`.</li>
+            <li>`MT5_BRIDGE_BASE_URL`: cloud provider API base URL.</li>
+            <li>`MT5_BRIDGE_API_KEY`: server/provider API key. Empty means mock bridge mode.</li>
             <li>Keep backend port 8000 private; nginx should proxy to it locally.</li>
+          </ol>
+        </article>
+
+        <article className="section-card">
+          <h2>5. Before live trading</h2>
+          <ol className="guide-list">
+            <li>Run the whole flow on a demo MT5 account first.</li>
+            <li>Confirm broker symbol names match the allowlist, including suffixes like EURUSD.a or XAUUSDm.</li>
+            <li>Keep stop-loss required, max lot low, max risk low, and max trades per day conservative.</li>
+            <li>Send one tiny test signal and review Trade Intents, Trade History, and Execution Logs.</li>
+            <li>If the provider's order API is different, update `backend/app/services/mt5_bridge.py` before live trading.</li>
           </ol>
         </article>
       </div>

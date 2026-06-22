@@ -3,7 +3,7 @@
 Greenfield SaaS scaffold based on the requested plan and the two source references:
 
 - `Rantoniaina/telegram-to-mt5`: React + FastAPI + Telethon-style Telegram connection, dialogs, messages, search, auth, and 2FA flow.
-- MQL5 Python Integration docs: account info, terminal info, symbols, order checks, order sending, positions, order history, and deal history. The official Python package connects to a local MT5 terminal, so this app wraps those concepts behind a cloud MT5 bridge for Mac-friendly SaaS use.
+- [MQL5 Python Integration docs](https://www.mql5.com/en/docs/python_metatrader5): account info, terminal info, symbols, order checks, order sending, positions, order history, and deal history. The official Python package connects to a local MT5 terminal, so this app wraps those concepts behind a cloud MT5 bridge for Mac-friendly SaaS use.
 
 ## Included
 
@@ -102,6 +102,10 @@ After verification:
 
 The app is built for a cloud MT5 bridge/provider so Mac users do not need to run a local Windows MT5 terminal.
 
+Why this matters: the official MQL5 Python Integration docs say the Python package establishes a connection with the MetaTrader 5 terminal and exposes terminal-backed functions like `account_info`, `terminal_info`, `symbols_get`, `symbol_info_tick`, `order_check`, `order_send`, `positions_get`, `history_orders_get`, and `history_deals_get`. That is great for a Windows machine running MT5 locally, but it is not the clean SaaS flow for Mac users logging into a website. SignalBridge keeps those same trading concepts, but sends them through `backend/app/services/mt5_bridge.py` to a cloud bridge/provider instead.
+
+Use a cloud provider that supports MT5 account status, positions, history, market data, order checks, and trade execution. MetaApi is one example of this provider style: its docs describe a cloud API for MetaTrader 4/5, adding a MetaTrader account to the provider app, then using REST or WebSocket APIs for account information, positions, history, market data, and trade execution.
+
 You need these from the chosen MT5 bridge provider:
 
 - Provider account/login ID: put this in `Provider account ID`.
@@ -109,10 +113,46 @@ You need these from the chosen MT5 bridge provider:
 - Optional global provider API key: set `MT5_BRIDGE_API_KEY` in `backend/.env` if your provider uses a server-level key.
 - Provider base URL: set `MT5_BRIDGE_BASE_URL` in `backend/.env`.
 
+### Step-by-Step MT5 Setup
+
+Follow this exact flow for each MT5 account:
+
+1. Start with a demo MT5 account first. Do not connect a live account until the full flow has been tested.
+2. Choose the cloud MT5 bridge/provider the business will use.
+3. Create or log into the provider account.
+4. In the provider dashboard, add a MetaTrader account.
+5. Enter the broker name/server, MT5 login number, and the MT5 password required by that provider.
+6. Wait until the provider shows the account as connected, deployed, or synchronized.
+7. Copy the provider's account ID for that connected MT5 account. In SignalBridge, paste it into `Provider account ID`.
+8. Copy the provider API token or account token. In SignalBridge, paste it into `Bridge token`.
+9. On the Oracle server, set provider-wide values in `backend/.env`:
+
+```bash
+MT5_BRIDGE_BASE_URL=https://YOUR_PROVIDER_API_BASE_URL
+MT5_BRIDGE_API_KEY=YOUR_PROVIDER_SERVER_API_KEY
+```
+
+10. Restart the backend service after changing `.env`.
+11. In SignalBridge, open MT5 Accounts and click Connect MT5 account.
+12. Click Health check. The account should show connected status, balance, equity, or any fields the provider returns.
+13. Open Automation, select the Telegram channel and the MT5 account, then create a rule with low demo limits.
+14. Sync a test Telegram message and confirm the Trade Intents, Trade History, and Execution Logs pages show the full decision trail.
+
 Current development behavior:
 
 - If `MT5_BRIDGE_API_KEY` is empty, the app uses a mock bridge response so the workflow can be tested safely.
+- Mock bridge mode can create mock trade records, but it does not place real provider orders.
 - To place real trades, configure the real provider URL/key and verify the provider's order schema matches `backend/app/services/mt5_bridge.py`.
+
+Before live trading:
+
+- Confirm the broker symbol names match the rule allowlist. Some brokers use suffixes like `EURUSD.a`, `XAUUSDm`, or `US30.cash`.
+- Keep `require_stop_loss` enabled.
+- Keep max lot and max risk percent low at first.
+- Test with one tiny demo trade.
+- Check the provider dashboard to confirm the order reached the correct MT5 account.
+- Check SignalBridge Trade Intents and Execution Logs to confirm why the app allowed or blocked the trade.
+- If the provider uses a different endpoint shape than the default adapter, update `backend/app/services/mt5_bridge.py` before enabling real trading.
 
 ### Automation Rule IDs
 
