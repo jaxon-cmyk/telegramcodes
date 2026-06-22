@@ -1,0 +1,33 @@
+from app.models.entities import (
+    AuditLog,
+    AutomationRule,
+    ExecutedTrade,
+    Invite,
+    MT5Account,
+    ParsedSignal,
+    SignalStatus,
+    TelegramChannel,
+    TelegramMessage,
+    TelegramSession,
+    TradeIntent,
+    TradeIntentStatus,
+    User,
+    UserRole,
+)
+
+__all__ = [
+    "AuditLog",
+    "AutomationRule",
+    "ExecutedTrade",
+    "Invite",
+    "MT5Account",
+    "ParsedSignal",
+    "SignalStatus",
+    "TelegramChannel",
+    "TelegramMessage",
+    "TelegramSession",
+    "TradeIntent",
+    "TradeIntentStatus",
+    "User",
+    "UserRole",
+]
