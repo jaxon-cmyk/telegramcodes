@@ -34,7 +34,7 @@ export function OverviewPage({ user }: { user: User | null }) {
         <article><span>Telegram</span><strong>User API login</strong><p>Telethon-ready connection flow with 2FA support.</p></article>
         <article><span>Parser</span><strong>Rules + AI fallback</strong><p>Validated normalized signals before any trade intent.</p></article>
         <article><span>MT5</span><strong>Cloud bridge</strong><p>Modeled after account info, order checks, positions, and history.</p></article>
-        <article><span>Access</span><strong>{user?.role ?? "user"}</strong><p>Invite-only beta with per-user data boundaries.</p></article>
+        <article><span>Access</span><strong>{user?.role === "admin" ? "Admin" : "User"}</strong><p>Invite-only beta with per-user data boundaries.</p></article>
       </div>
       <div className="section-card">
         <h2>Recommended setup path</h2>

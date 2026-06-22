@@ -29,7 +29,7 @@ export function Shell({ active, onNavigate, user, children }: { active: string; 
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <Shield size={28} />
+          <span className="app-logo"><Shield size={22} /></span>
           <div>
             <strong>SignalBridge</strong>
             <span>Telegram to MT5</span>
@@ -46,7 +46,7 @@ export function Shell({ active, onNavigate, user, children }: { active: string; 
         <div className="account-card">
           <span>Signed in</span>
           <strong>{user.email}</strong>
-          <small>{user.role}</small>
+          <small>{user.role === "admin" ? "Administrator" : "Workspace user"}</small>
         </div>
         <div className="source-note">
           <KeyRound size={16} />

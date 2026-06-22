@@ -57,6 +57,11 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
               <span>Rules-first parser</span>
               <span>Cloud MT5 bridge</span>
             </div>
+            <div className="hero-stats" aria-label="SignalBridge capabilities">
+              <div><strong>24/7</strong><span>signal monitoring</span></div>
+              <div><strong>5+</strong><span>risk checks per trade</span></div>
+              <div><strong>100%</strong><span>auditable decisions</span></div>
+            </div>
           </div>
 
           <div className="hero-console" aria-label="SignalBridge dashboard preview">
@@ -85,6 +90,10 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
                 <strong>Trade intent ready</strong>
                 <p>Order check and order send are routed through the configured provider.</p>
               </article>
+            </div>
+            <div className="console-footer">
+              <span>Validated signal</span>
+              <strong>Ready for MT5 provider check</strong>
             </div>
           </div>
         </section>
@@ -159,6 +168,11 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
           </form>
         </section>
       </main>
+
+      <footer className="public-footer">
+        <span>SignalBridge</span>
+        <span>Invite-only Telegram to MT5 automation platform</span>
+      </footer>
     </div>
   );
 }
