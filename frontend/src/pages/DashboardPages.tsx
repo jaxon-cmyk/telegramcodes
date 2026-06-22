@@ -319,15 +319,16 @@ export function SetupGuidePage() {
         <article className="section-card">
           <h2>1. Telegram credentials</h2>
           <ol className="guide-list">
-            <li>Open the official Telegram app and confirm this account already belongs to the channels/groups you want to monitor.</li>
-            <li>Go to <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a> and log in with that same phone number.</li>
+            <li>Open the official Telegram app and confirm this account is already in the channels/groups SignalBridge should read.</li>
+            <li>Go to <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a>.</li>
+            <li>Log in with the same Telegram phone number.</li>
             <li>Enter the login code Telegram sends inside the Telegram app.</li>
-            <li>Open API development tools, create an app, and use a title like SignalBridge.</li>
-            <li>Copy `api_id`, the numeric Telegram app ID, into Telegram API ID.</li>
-            <li>Copy `api_hash`, the secret Telegram app key, into Telegram API Hash.</li>
-            <li>Enter the Telegram phone number with country code, start verification, then enter the Telegram code.</li>
-            <li>Enter the 2FA password only if Telegram asks for it.</li>
-            <li>Load dialogs, then enable only the channels/groups this user wants SignalBridge to read.</li>
+            <li>Click API development tools.</li>
+            <li>Create an app with title SignalBridge and short name signalbridge.</li>
+            <li>Find `api_id` on the created app page. Paste it into SignalBridge API ID.</li>
+            <li>Find `api_hash` on the same app page. Paste it into SignalBridge API Hash.</li>
+            <li>Enter the phone number in SignalBridge, click Start verification, then paste the Telegram login code.</li>
+            <li>Enter the 2FA password only if Telegram asks for it, then load dialogs and enable channels.</li>
           </ol>
         </article>
 
@@ -335,14 +336,16 @@ export function SetupGuidePage() {
           <h2>2. MT5 bridge credentials</h2>
           <ol className="guide-list">
             <li>Start with a demo MT5 trading account.</li>
-            <li>For the MetaApi example, go to <a className="text-link" href="https://app.metaapi.cloud" target="_blank" rel="noreferrer">app.metaapi.cloud</a>, create an account, and copy the API/auth token from the web app.</li>
-            <li>In MetaApi, add a MetaTrader account: platform mt5, broker server name, MT5 login number, and the password MetaApi requires.</li>
-            <li>Use a master/trading password only if SignalBridge should place trades. Investor passwords are read-only.</li>
-            <li>Deploy/connect the account and wait until MetaApi shows it as connected.</li>
-            <li>Copy the MetaApi trading account id into SignalBridge Provider account ID.</li>
-            <li>Copy the MetaApi API/auth token into Bridge token.</li>
-            <li>On the server, set `MT5_BRIDGE_API_KEY` to the provider token and `MT5_BRIDGE_BASE_URL` to the provider API base URL.</li>
-            <li>Click Health check in MT5 Accounts and confirm connected status, balance, or equity before automation.</li>
+            <li>Go to <a className="text-link" href="https://app.metaapi.cloud" target="_blank" rel="noreferrer">app.metaapi.cloud</a> and log in.</li>
+            <li>Find the MetaApi API/auth token in the MetaApi web app. Paste it into SignalBridge Bridge token.</li>
+            <li>On the server, put the same token in `MT5_BRIDGE_API_KEY`.</li>
+            <li>Set `MT5_BRIDGE_BASE_URL` to `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai` for the MetaApi provisioning/account-management API.</li>
+            <li>In MetaApi, add a MetaTrader account with platform mt5.</li>
+            <li>Find the MT5 login number, server name, and password in the user's broker portal, MT5 app, or broker welcome email.</li>
+            <li>Deploy/connect the account and wait until MetaApi shows it as connected or synchronized.</li>
+            <li>Open the connected MetaApi account details and copy its account `id`.</li>
+            <li>Paste that account `id` into SignalBridge Provider account ID.</li>
+            <li>Click Health check in MT5 Accounts and confirm status, balance, or equity before automation.</li>
           </ol>
         </article>
 
