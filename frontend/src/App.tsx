@@ -33,6 +33,12 @@ export default function App() {
   if (loading) return <div className="loading">Loading dashboard...</div>;
   if (!user) return <AuthPage onAuthenticated={loadUser} />;
 
+  useEffect(() => {
+    if (user?.role !== "admin" && active === "admin") {
+      setActive("overview");
+    }
+  }, [active, user]);
+
   const pages: Record<string, ReactElement> = {
     overview: <OverviewPage user={user} />,
     telegram: <TelegramPage />,
@@ -43,8 +49,8 @@ export default function App() {
     intents: <TradeIntentsPage />,
     trades: <TradesPage />,
     logs: <LogsPage />,
-    admin: <AdminPage />
+    admin: user.role === "admin" ? <AdminPage currentUser={user} /> : <OverviewPage user={user} />
   };
 
-  return <Shell active={active} onNavigate={setActive}>{pages[active] ?? pages.overview}</Shell>;
+  return <Shell active={active} onNavigate={setActive} user={user}>{pages[active] ?? pages.overview}</Shell>;
 }

@@ -1,10 +1,12 @@
 import { Activity, Bot, Cable, FileText, Home, KeyRound, Lock, MessagesSquare, Shield, Sliders, UserCog, WalletCards } from "lucide-react";
 import type { ReactNode } from "react";
+import type { User } from "../types/api";
 
 type NavItem = {
   id: string;
   label: string;
   icon: ReactNode;
+  adminOnly?: boolean;
 };
 
 const nav: NavItem[] = [
@@ -17,10 +19,12 @@ const nav: NavItem[] = [
   { id: "intents", label: "Trade Intents", icon: <Activity /> },
   { id: "trades", label: "Trade History", icon: <WalletCards /> },
   { id: "logs", label: "Execution Logs", icon: <Lock /> },
-  { id: "admin", label: "Admin", icon: <UserCog /> }
+  { id: "admin", label: "Admin", icon: <UserCog />, adminOnly: true }
 ];
 
-export function Shell({ active, onNavigate, children }: { active: string; onNavigate: (id: string) => void; children: ReactNode }) {
+export function Shell({ active, onNavigate, user, children }: { active: string; onNavigate: (id: string) => void; user: User; children: ReactNode }) {
+  const visibleNav = nav.filter((item) => !item.adminOnly || user.role === "admin");
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -32,13 +36,18 @@ export function Shell({ active, onNavigate, children }: { active: string; onNavi
           </div>
         </div>
         <nav>
-          {nav.map((item) => (
+          {visibleNav.map((item) => (
             <button key={item.id} className={active === item.id ? "active" : ""} onClick={() => onNavigate(item.id)}>
               {item.icon}
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
+        <div className="account-card">
+          <span>Signed in</span>
+          <strong>{user.email}</strong>
+          <small>{user.role}</small>
+        </div>
         <div className="source-note">
           <KeyRound size={16} />
           <span>Invite-only beta with encrypted credentials and per-user scoping.</span>

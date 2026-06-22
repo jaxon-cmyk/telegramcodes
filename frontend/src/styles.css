@@ -10,27 +10,38 @@ button, input { font: inherit; }
 a { color: inherit; text-decoration: none; }
 button { border: 0; border-radius: 8px; padding: 10px 14px; color: #06101f; background: #61d5ff; cursor: pointer; font-weight: 700; }
 button:hover { filter: brightness(1.06); }
+button:disabled { cursor: not-allowed; opacity: 0.45; filter: none; }
 input { width: 100%; border: 1px solid #263750; border-radius: 8px; background: #0d1422; color: #f5f7fb; padding: 10px 12px; margin-top: 6px; }
 label { display: grid; gap: 4px; color: #9fb0ca; font-size: 13px; }
 h1, h2, p { margin-top: 0; }
 
 .loading { padding: 48px; }
-.app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
-.sidebar { background: #0a101b; border-right: 1px solid #172235; padding: 20px; display: flex; flex-direction: column; gap: 24px; }
+.app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; background: #080c14; }
+.sidebar { position: sticky; top: 0; height: 100vh; background: #0b111d; border-right: 1px solid #172235; padding: 20px; display: flex; flex-direction: column; gap: 24px; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand strong { display: block; font-size: 18px; }
 .brand span, .source-note { color: #8da0bd; font-size: 13px; }
 nav { display: grid; gap: 6px; }
 nav button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; background: transparent; color: #b9c7dc; }
 nav button svg { width: 18px; height: 18px; }
-nav button.active { background: #132136; color: #fff; }
+nav button.active { background: #132136; color: #fff; box-shadow: inset 3px 0 0 #61d5ff; }
+.account-card { border: 1px solid #1b2a42; background: #0f1726; border-radius: 8px; padding: 14px; display: grid; gap: 5px; overflow: hidden; }
+.account-card span, .account-card small { color: #8da0bd; font-size: 12px; }
+.account-card strong { color: #f4f7ff; font-size: 13px; overflow-wrap: anywhere; }
 .source-note { margin-top: auto; display: flex; gap: 8px; line-height: 1.4; }
-.content { padding: 28px; max-width: 1280px; width: 100%; }
+.content { padding: 32px; max-width: 1440px; width: 100%; }
+.dashboard-page { display: grid; gap: 22px; }
+.dashboard-hero { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; border: 1px solid #1b2a42; background: linear-gradient(135deg, #0f1726 0%, #0a101b 100%); border-radius: 8px; padding: 24px; }
+.dashboard-hero h1 { font-size: 38px; margin-bottom: 10px; letter-spacing: 0; }
+.dashboard-hero p { max-width: 760px; color: #aab8cf; line-height: 1.55; margin: 0; }
+.status-pill, .badge { display: inline-flex; align-items: center; width: fit-content; border: 1px solid #263750; border-radius: 999px; padding: 7px 10px; color: #b9c7dc; background: #0d1422; font-size: 13px; font-weight: 800; }
+.badge.success { color: #93f0b5; border-color: #235c3a; background: #12291e; }
+.badge.danger { color: #ff9fb3; border-color: #753042; background: #35121b; }
 .page-heading { margin-bottom: 22px; }
 .page-heading h1 { font-size: 34px; letter-spacing: 0; }
 .eyebrow { color: #61d5ff; text-transform: uppercase; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; }
 .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.metric-grid article, .panel, .cards article { border: 1px solid #1b2a42; background: #0d1422; border-radius: 8px; padding: 18px; }
+.metric-grid article, .panel, .cards article, .section-card { border: 1px solid #1b2a42; background: #0d1422; border-radius: 8px; padding: 18px; }
 .metric-grid article span { color: #8da0bd; font-size: 13px; }
 .metric-grid article strong { display: block; margin: 8px 0; font-size: 19px; }
 .split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -40,6 +51,18 @@ nav button.active { background: #132136; color: #fff; }
 .table { display: grid; gap: 8px; }
 .row { display: grid; grid-template-columns: 2fr 1fr 1fr auto auto; gap: 10px; align-items: center; border: 1px solid #1b2a42; background: #0d1422; border-radius: 8px; padding: 12px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.section-card p { color: #aab8cf; line-height: 1.55; }
+.step-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.step-list span { border: 1px solid #263750; border-radius: 8px; padding: 10px 12px; color: #dbe6f6; background: #10192a; }
+.admin-grid { display: grid; grid-template-columns: minmax(320px, 0.8fr) minmax(280px, 1fr); gap: 16px; align-items: start; }
+.data-table { display: grid; border: 1px solid #1b2a42; border-radius: 8px; overflow: hidden; background: #0d1422; }
+.data-row { display: grid; grid-template-columns: minmax(240px, 1.4fr) 0.5fr 0.5fr minmax(280px, 1.3fr); gap: 14px; align-items: center; padding: 14px 16px; border-top: 1px solid #1b2a42; }
+.data-row:first-child { border-top: 0; }
+.data-head { color: #8da0bd; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; background: #111b2b; }
+.data-row strong, .data-row small { display: block; }
+.data-row small { color: #8da0bd; margin-top: 4px; }
+.action-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.action-group button { padding: 8px 10px; font-size: 13px; background: #1c2d47; color: #e8eefc; }
 .notice, .error { border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
 .notice { background: #12291e; color: #93f0b5; }
 .error { background: #35121b; color: #ff9fb3; }
@@ -82,8 +105,10 @@ nav button.active { background: #132136; color: #fff; }
 
 @media (max-width: 920px) {
   .app-shell { grid-template-columns: 1fr; }
-  .sidebar { position: static; }
+  .sidebar { position: static; height: auto; }
   .metric-grid, .split, .hero-section, .feature-grid, .safety-band, .access-section { grid-template-columns: 1fr; }
+  .dashboard-hero, .admin-grid { display: grid; grid-template-columns: 1fr; }
+  .data-row { grid-template-columns: 1fr; }
   .public-nav { position: static; align-items: flex-start; flex-direction: column; }
   .public-nav nav { flex-wrap: wrap; }
   .row { grid-template-columns: 1fr; }

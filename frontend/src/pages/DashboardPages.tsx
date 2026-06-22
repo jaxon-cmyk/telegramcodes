@@ -21,13 +21,30 @@ function useAsyncList<T>(loader: () => Promise<unknown>, fallback: T[] = []) {
 
 export function OverviewPage({ user }: { user: User | null }) {
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Overview</p><h1>SignalBridge control room</h1></div>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h1>SignalBridge control room</h1>
+          <p>Monitor signal feeds, parse trades, enforce risk rules, and keep every MT5 action auditable.</p>
+        </div>
+        <div className="status-pill">Signed in as {user?.role ?? "user"}</div>
+      </div>
       <div className="metric-grid">
         <article><span>Telegram</span><strong>User API login</strong><p>Telethon-ready connection flow with 2FA support.</p></article>
         <article><span>Parser</span><strong>Rules + AI fallback</strong><p>Validated normalized signals before any trade intent.</p></article>
         <article><span>MT5</span><strong>Cloud bridge</strong><p>Modeled after account info, order checks, positions, and history.</p></article>
         <article><span>Access</span><strong>{user?.role ?? "user"}</strong><p>Invite-only beta with per-user data boundaries.</p></article>
+      </div>
+      <div className="section-card">
+        <h2>Recommended setup path</h2>
+        <div className="step-list">
+          <span>1. Connect Telegram</span>
+          <span>2. Enable signal channels</span>
+          <span>3. Connect MT5 bridge account</span>
+          <span>4. Create automation rules</span>
+          <span>5. Review trade intents and logs</span>
+        </div>
       </div>
     </section>
   );
@@ -185,22 +202,79 @@ export function LogsPage() {
   return <ListPage title="Execution logs" eyebrow="Audit" error={error} refresh={refresh} items={items.map((item) => `${item.action} on ${item.entity_type}: ${JSON.stringify(item.details)}`)} />;
 }
 
-export function AdminPage() {
+export function AdminPage({ currentUser }: { currentUser: User }) {
+  const { items: users, error, refresh } = useAsyncList<User>(() => api.adminUsers());
   const [email, setEmail] = useState("");
   const [result, setResult] = useState("");
+  const [notice, setNotice] = useState("");
   async function createInvite(event: FormEvent) {
     event.preventDefault();
     const invite = await api.createInvite(email) as { code: string };
     setResult(invite.code);
   }
+  async function updateUser(id: number, payload: Record<string, unknown>) {
+    setNotice("");
+    try {
+      await api.updateAdminUser(id, payload);
+      setNotice("User updated.");
+      await refresh();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not update user");
+    }
+  }
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Admin</p><h1>Invites and system health</h1></div>
-      <form className="panel" onSubmit={createInvite}>
-        <label>Email optional<input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-        <button>Create invite</button>
-      </form>
-      {result && <div className="notice">Invite code: {result}</div>}
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Admin</p>
+          <h1>Users and invites</h1>
+          <p>Manage invite access, promote trusted users to admin, and deactivate accounts when needed.</p>
+        </div>
+        <button onClick={refresh}>Refresh users</button>
+      </div>
+
+      <div className="admin-grid">
+        <form className="panel" onSubmit={createInvite}>
+          <h2>Create invite</h2>
+          <label>Email optional<input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+          <button>Create invite</button>
+          {result && <div className="notice">Invite code: {result}</div>}
+        </form>
+
+        <div className="section-card">
+          <h2>Admin safety</h2>
+          <p>Admins can change other users between user and admin roles. The API blocks removing your own admin role or deactivating yourself.</p>
+        </div>
+      </div>
+
+      {error && <div className="error">{error}</div>}
+      {notice && <div className={notice.includes("Could not") || notice.includes("cannot") ? "error" : "notice"}>{notice}</div>}
+
+      <div className="data-table">
+        <div className="data-row data-head">
+          <span>User</span>
+          <span>Role</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+        {users.map((item) => (
+          <div className="data-row" key={item.id}>
+            <span>
+              <strong>{item.email}</strong>
+              {item.id === currentUser.id && <small>You</small>}
+            </span>
+            <span className="badge">{item.role}</span>
+            <span className={item.is_active ? "badge success" : "badge danger"}>{item.is_active ? "Active" : "Inactive"}</span>
+            <span className="action-group">
+              <button disabled={item.role === "admin"} onClick={() => updateUser(item.id, { role: "admin" })}>Make admin</button>
+              <button disabled={item.role === "user" || item.id === currentUser.id} onClick={() => updateUser(item.id, { role: "user" })}>Make user</button>
+              <button disabled={item.id === currentUser.id} onClick={() => updateUser(item.id, { is_active: !item.is_active })}>
+                {item.is_active ? "Deactivate" : "Activate"}
+              </button>
+            </span>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

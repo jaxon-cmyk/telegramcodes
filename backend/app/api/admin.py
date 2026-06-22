@@ -1,13 +1,13 @@
 import secrets
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_admin
 from app.db.session import get_db
-from app.models import Invite, MT5Account, TelegramMessage, TradeIntent, TradeIntentStatus, User
-from app.schemas.common import InviteCreate, InviteRead, UserRead
+from app.models import Invite, MT5Account, TelegramMessage, TradeIntent, TradeIntentStatus, User, UserRole
+from app.schemas.common import InviteCreate, InviteRead, UserAdminUpdate, UserRead
 from app.services.audit import audit
 
 router = APIRouter(tags=["admin"])
@@ -32,6 +32,46 @@ def create_invite(payload: InviteCreate, admin: User = Depends(require_admin), d
 @router.get("/admin/users", response_model=list[UserRead])
 def list_users(_: User = Depends(require_admin), db: Session = Depends(get_db)) -> list[User]:
     return list(db.scalars(select(User).order_by(User.created_at.desc())))
+
+
+@router.patch("/admin/users/{user_id}", response_model=UserRead)
+def update_user(
+    user_id: int,
+    payload: UserAdminUpdate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> User:
+    target = db.scalar(select(User).where(User.id == user_id))
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    updates: dict = {}
+    if payload.role is not None:
+        if payload.role not in {UserRole.admin.value, UserRole.user.value}:
+            raise HTTPException(status_code=400, detail="Role must be admin or user")
+        if target.id == admin.id and payload.role != UserRole.admin.value:
+            raise HTTPException(status_code=400, detail="You cannot remove your own admin role")
+        target.role = UserRole(payload.role)
+        updates["role"] = payload.role
+
+    if payload.is_active is not None:
+        if target.id == admin.id and not payload.is_active:
+            raise HTTPException(status_code=400, detail="You cannot deactivate your own account")
+        target.is_active = payload.is_active
+        updates["is_active"] = payload.is_active
+
+    audit(
+        db,
+        action="admin_user_updated",
+        entity_type="user",
+        user_id=target.id,
+        actor_user_id=admin.id,
+        entity_id=str(target.id),
+        details=updates,
+    )
+    db.commit()
+    db.refresh(target)
+    return target
 
 
 @router.get("/admin/system-health")

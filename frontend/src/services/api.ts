@@ -34,6 +34,8 @@ export const api = {
   me: () => request("/auth/me"),
   createInvite: (email?: string) => request("/invites", { method: "POST", body: JSON.stringify({ email: email || null }) }),
   adminUsers: () => request("/admin/users"),
+  updateAdminUser: (id: number, payload: Record<string, unknown>) =>
+    request(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   systemHealth: () => request("/admin/system-health"),
   connectTelegram: (payload: Record<string, string>) => request("/telegram/connect", { method: "POST", body: JSON.stringify(payload) }),
   verifyTelegram: (payload: Record<string, string | number>) => request("/telegram/verify", { method: "POST", body: JSON.stringify(payload) }),

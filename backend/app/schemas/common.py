@@ -21,6 +21,11 @@ class UserRead(ORMModel):
     created_at: datetime
 
 
+class UserAdminUpdate(BaseModel):
+    role: str | None = None
+    is_active: bool | None = None
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
