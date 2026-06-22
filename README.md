@@ -80,16 +80,33 @@ These are configured by the site owner in `backend/.env` on the Oracle server.
 
 Each user gets these from Telegram:
 
-1. Go to `https://my.telegram.org`.
-2. Log in with the Telegram phone number that is already inside the signal channels.
-3. Click API development tools.
-4. Create an app. App title/short name can be anything recognizable, such as `SignalBridge`.
-5. Copy `api_id` into SignalBridge `API ID`.
-6. Copy `api_hash` into SignalBridge `API Hash`.
-7. Enter the Telegram phone number with country code, such as `+15555550123`.
-8. Click Start verification.
-9. Enter the Telegram login code.
-10. Enter 2FA password only if Telegram asks for it.
+1. Install or open the official Telegram mobile or desktop app first.
+2. Make sure the Telegram account is already joined to the private/public channels or groups it needs to monitor. SignalBridge can only list chats this account can already access.
+3. Go to `https://my.telegram.org` in a browser.
+4. Log in with the same Telegram phone number.
+5. Telegram sends a login code inside the Telegram app. Enter that code on `my.telegram.org`.
+6. Click `API development tools`.
+7. Fill out the app form:
+   - App title: `SignalBridge` or your company name.
+   - Short name: `signalbridge` or another simple one-word name.
+   - URL/platform/description: use simple business values if shown. Telegram mainly needs the title and short name.
+8. Click create application.
+9. Copy `api_id`. This is the number that goes into SignalBridge `API ID`.
+10. Copy `api_hash`. This is the long secret string that goes into SignalBridge `API Hash`.
+11. Keep `api_hash` private. Do not send it in screenshots or public chats.
+12. In SignalBridge, open Telegram.
+13. Paste `API ID`, paste `API Hash`, and enter the Telegram phone number with country code, such as `+15555550123`.
+14. Click Start verification.
+15. Enter the Telegram login code.
+16. Enter the Telegram 2FA password only if Telegram asks for it.
+
+What these values mean:
+
+- `api_id`: Telegram's numeric app ID for the Telegram API app you created.
+- `api_hash`: Telegram's secret key for that API app.
+- Phone: the real Telegram user account that has access to the channels.
+- Login code: the one-time code Telegram sends during sign-in.
+- 2FA password: the account password only required if that Telegram account has two-step verification turned on.
 
 After verification:
 
@@ -113,7 +130,67 @@ You need these from the chosen MT5 bridge provider:
 - Optional global provider API key: set `MT5_BRIDGE_API_KEY` in `backend/.env` if your provider uses a server-level key.
 - Provider base URL: set `MT5_BRIDGE_BASE_URL` in `backend/.env`.
 
-### Step-by-Step MT5 Setup
+### Step-by-Step MT5 Setup With MetaApi Example
+
+Use this when you want a concrete provider flow instead of generic "get a token" instructions.
+
+Create the MetaApi account and token:
+
+1. Go to `https://app.metaapi.cloud`.
+2. Create a MetaApi account or log in.
+3. Find the API/auth token in the MetaApi web application. MetaApi's provisioning docs say REST API calls use an `auth-token` header and that the token is retrieved from the MetaApi web app.
+4. Copy that token.
+5. On the Oracle server, put that token in `backend/.env`:
+
+```bash
+MT5_BRIDGE_API_KEY=PASTE_METAAPI_TOKEN_HERE
+```
+
+Add the user's MT5 trading account in MetaApi:
+
+1. In MetaApi, open the account/provisioning area for MetaTrader accounts.
+2. Add or create a MetaTrader account.
+3. Choose platform `mt5`.
+4. Enter the MT5 login number. This is the trading account number from the user's broker.
+5. Enter the MT5 password required by MetaApi. Use the master/trading password only if this account should place trades; investor passwords are read-only.
+6. Enter the broker server name exactly as the broker shows it, such as `ICMarketsSC-Demo`.
+7. Enter a human-readable account name, such as `Shawn Demo MT5`.
+8. If MetaApi asks for a magic number, choose a number used only by SignalBridge, such as `20260622`.
+9. Deploy/connect the account.
+10. Wait until MetaApi shows the account as deployed/connected. Their docs say starting the cloud API server and connecting to the broker can take time.
+11. Copy the MetaApi trading account `id`. It looks like a long UUID. This is the value to paste into SignalBridge `Provider account ID`.
+
+Connect that account inside SignalBridge:
+
+1. Open SignalBridge.
+2. Go to MT5 Accounts.
+3. Name: enter a friendly label, such as `Shawn Demo MT5`.
+4. Provider account ID: paste the MetaApi trading account `id`.
+5. Bridge token: paste the MetaApi token again, unless the final provider adapter uses only the server-level `MT5_BRIDGE_API_KEY`.
+6. Click Connect MT5 account.
+7. Click Health check.
+8. Confirm you see connected status, balance/equity, or provider account info.
+
+Set the provider base URL:
+
+- MetaApi provisioning/account-management API base URL from their docs: `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai`.
+- MetaApi trading/client API endpoints are separate from provisioning in their docs. Before live trading, confirm the exact trade/status endpoints and update `backend/app/services/mt5_bridge.py` to match the provider API.
+
+```bash
+MT5_BRIDGE_BASE_URL=https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai
+```
+
+If you choose a different cloud MT5 provider, use the same pattern:
+
+1. Create provider account.
+2. Copy the provider API key/token.
+3. Add/deploy the user's MT5 account inside the provider.
+4. Copy the provider's connected MT5 account ID.
+5. Paste provider account ID and token into SignalBridge.
+6. Set `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY`.
+7. Update `backend/app/services/mt5_bridge.py` if that provider's endpoints do not match the current adapter.
+
+### Step-by-Step MT5 Setup Checklist
 
 Follow this exact flow for each MT5 account:
 

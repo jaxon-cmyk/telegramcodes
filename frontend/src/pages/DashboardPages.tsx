@@ -319,13 +319,15 @@ export function SetupGuidePage() {
         <article className="section-card">
           <h2>1. Telegram credentials</h2>
           <ol className="guide-list">
-            <li>Go to <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a>.</li>
-            <li>Log in with the Telegram phone number that already belongs to the signal groups.</li>
-            <li>Open API development tools and create an app.</li>
-            <li>Copy `api_id` into Telegram API ID.</li>
-            <li>Copy `api_hash` into Telegram API Hash.</li>
-            <li>Enter the phone number with country code, start verification, then enter the Telegram code.</li>
+            <li>Open the official Telegram app and confirm this account already belongs to the channels/groups you want to monitor.</li>
+            <li>Go to <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a> and log in with that same phone number.</li>
+            <li>Enter the login code Telegram sends inside the Telegram app.</li>
+            <li>Open API development tools, create an app, and use a title like SignalBridge.</li>
+            <li>Copy `api_id`, the numeric Telegram app ID, into Telegram API ID.</li>
+            <li>Copy `api_hash`, the secret Telegram app key, into Telegram API Hash.</li>
+            <li>Enter the Telegram phone number with country code, start verification, then enter the Telegram code.</li>
             <li>Enter the 2FA password only if Telegram asks for it.</li>
+            <li>Load dialogs, then enable only the channels/groups this user wants SignalBridge to read.</li>
           </ol>
         </article>
 
@@ -333,12 +335,13 @@ export function SetupGuidePage() {
           <h2>2. MT5 bridge credentials</h2>
           <ol className="guide-list">
             <li>Start with a demo MT5 trading account.</li>
-            <li>Choose the cloud MT5 bridge/provider the business will use.</li>
-            <li>In the provider dashboard, add the user's MT5 account with broker server, MT5 login number, and the password the provider requires.</li>
-            <li>Wait until the provider says the account is connected, deployed, or synchronized.</li>
-            <li>Copy the provider's connected account ID into Provider account ID.</li>
-            <li>Copy the provider API token or account token into Bridge token.</li>
-            <li>Set provider-wide `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` in `backend/.env`, then restart the backend.</li>
+            <li>For the MetaApi example, go to <a className="text-link" href="https://app.metaapi.cloud" target="_blank" rel="noreferrer">app.metaapi.cloud</a>, create an account, and copy the API/auth token from the web app.</li>
+            <li>In MetaApi, add a MetaTrader account: platform mt5, broker server name, MT5 login number, and the password MetaApi requires.</li>
+            <li>Use a master/trading password only if SignalBridge should place trades. Investor passwords are read-only.</li>
+            <li>Deploy/connect the account and wait until MetaApi shows it as connected.</li>
+            <li>Copy the MetaApi trading account id into SignalBridge Provider account ID.</li>
+            <li>Copy the MetaApi API/auth token into Bridge token.</li>
+            <li>On the server, set `MT5_BRIDGE_API_KEY` to the provider token and `MT5_BRIDGE_BASE_URL` to the provider API base URL.</li>
             <li>Click Health check in MT5 Accounts and confirm connected status, balance, or equity before automation.</li>
           </ol>
         </article>
@@ -360,8 +363,8 @@ export function SetupGuidePage() {
             <li>`JWT_SECRET`: long random string for login tokens.</li>
             <li>`ENCRYPTION_KEY`: Fernet key for Telegram sessions and MT5 tokens.</li>
             <li>`ALLOWED_ORIGINS`: server IP/domain, such as `http://129.146.112.0`.</li>
-            <li>`MT5_BRIDGE_BASE_URL`: cloud provider API base URL.</li>
-            <li>`MT5_BRIDGE_API_KEY`: server/provider API key. Empty means mock bridge mode.</li>
+            <li>`MT5_BRIDGE_BASE_URL`: cloud provider API base URL. For MetaApi provisioning, the docs show `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai`.</li>
+            <li>`MT5_BRIDGE_API_KEY`: server/provider API key from the provider web app. Empty means mock bridge mode.</li>
             <li>Keep backend port 8000 private; nginx should proxy to it locally.</li>
           </ol>
         </article>
