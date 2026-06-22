@@ -77,6 +77,7 @@ class TelegramDialogRead(BaseModel):
     title: str
     kind: str
     is_enabled: bool = False
+    channel_id: int | None = None
 
 
 class ChannelEnableRequest(BaseModel):

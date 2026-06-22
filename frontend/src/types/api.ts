@@ -10,6 +10,7 @@ export type TelegramDialog = {
   title: string;
   kind: string;
   is_enabled: boolean;
+  channel_id?: number;
 };
 
 export type Message = {

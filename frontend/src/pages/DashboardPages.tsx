@@ -103,7 +103,12 @@ export function TelegramPage() {
       <div className="split">
         <form className="panel" onSubmit={submitConnect}>
           <h2>Connect Telegram</h2>
-          <p className="muted">Use credentials from my.telegram.org. Private channels work when this Telegram account already has access.</p>
+          <p className="muted">Get these from <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a>. Log in, open API development tools, create an app, then copy the API ID and API Hash.</p>
+          <div className="help-list">
+            <span>Phone must include country code, like +15555550123.</span>
+            <span>Telegram sends the verification code after Start verification.</span>
+            <span>Private channels appear only if this Telegram account already has access.</span>
+          </div>
           <label>API ID<input value={connect.api_id} onChange={(event) => setConnect({ ...connect, api_id: event.target.value })} /></label>
           <label>API Hash<input value={connect.api_hash} onChange={(event) => setConnect({ ...connect, api_hash: event.target.value })} /></label>
           <label>Phone<input value={connect.phone} onChange={(event) => setConnect({ ...connect, phone: event.target.value })} /></label>
@@ -111,6 +116,7 @@ export function TelegramPage() {
         </form>
         <form className="panel" onSubmit={submitVerify}>
           <h2>Verify code</h2>
+          <p className="muted">The Session ID fills in after you start verification. Only enter the 2FA password if Telegram asks for one.</p>
           <label>Session ID<input value={verify.session_id} onChange={(event) => setVerify({ ...verify, session_id: event.target.value })} /></label>
           <label>Code<input value={verify.code} onChange={(event) => setVerify({ ...verify, code: event.target.value })} /></label>
           <label>2FA Password<input value={verify.password} onChange={(event) => setVerify({ ...verify, password: event.target.value })} /></label>
@@ -122,7 +128,7 @@ export function TelegramPage() {
       <div className="table">
         {items.map((dialog) => (
           <div className="row" key={dialog.dialog_id}>
-            <span>{dialog.title}</span><span>{dialog.kind}</span><span>{dialog.is_enabled ? "Enabled" : "Disabled"}</span>
+            <span><strong>{dialog.title}</strong>{dialog.channel_id && <small>Channel ID for automation: {dialog.channel_id}</small>}</span><span>{dialog.kind}</span><span>{dialog.is_enabled ? "Enabled" : "Disabled"}</span>
             <button onClick={() => api.enableChannel(dialog.dialog_id, !dialog.is_enabled).then(refresh)}>Toggle</button>
             <button onClick={() => syncDialog(dialog)}>Sync</button>
           </div>
@@ -188,22 +194,35 @@ export function MT5Page() {
     await refresh();
   }
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">MT5</p><h1>Cloud bridge accounts</h1></div>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">MT5</p>
+          <h1>Cloud bridge accounts</h1>
+          <p>Connect the provider account that can send orders to the user's MT5 trading account. The exact token/account ID comes from your MT5 bridge provider.</p>
+        </div>
+      </div>
       <form className="panel" onSubmit={submit}>
+        <div className="help-list">
+          <span>Name: internal label, like Main Forex Account.</span>
+          <span>Provider account ID: the account/login ID from your MT5 bridge provider.</span>
+          <span>Bridge token: provider API token or account token. Keep it secret.</span>
+        </div>
         <label>Name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
         <label>Provider account ID<input value={form.provider_account_id} onChange={(event) => setForm({ ...form, provider_account_id: event.target.value })} /></label>
         <label>Bridge token<input value={form.token} onChange={(event) => setForm({ ...form, token: event.target.value })} /></label>
         <button>Connect MT5 account</button>
       </form>
       {error && <div className="error">{error}</div>}
-      <div className="table">{items.map((account) => <div className="row" key={account.id}><span>{account.name}</span><span>{account.status}</span><span>{account.balance ?? "-"}</span><button onClick={() => api.mt5Status(account.id).then(refresh)}>Health check</button></div>)}</div>
+      <div className="table">{items.map((account) => <div className="row" key={account.id}><span><strong>{account.name}</strong><small>MT5 account ID for automation: {account.id}</small></span><span>{account.status}</span><span>{account.balance ?? "-"}</span><button onClick={() => api.mt5Status(account.id).then(refresh)}>Health check</button></div>)}</div>
     </section>
   );
 }
 
 export function AutomationPage() {
   const { items, error, refresh } = useAsyncList<AutomationRule>(() => api.automationRules());
+  const { items: dialogs, refresh: refreshDialogs } = useAsyncList<TelegramDialog>(() => api.dialogs());
+  const { items: accounts, refresh: refreshAccounts } = useAsyncList<MT5Account>(() => api.mt5Accounts());
   const [form, setForm] = useState({ name: "", channel_id: "", mt5_account_id: "", allowed_symbols: "EURUSD,XAUUSD", max_lot: "0.1", max_risk_percent: "1", max_trades_per_day: "3", duplicate_window_minutes: "60" });
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -220,12 +239,46 @@ export function AutomationPage() {
     });
     await refresh();
   }
+  async function refreshSetupData() {
+    await refreshDialogs();
+    await refreshAccounts();
+  }
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Automation</p><h1>Auto-trading risk rules</h1></div>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Automation</p>
+          <h1>Auto-trading risk rules</h1>
+          <p>Select the Telegram source and MT5 account, then set the limits that decide whether a parsed signal is allowed to trade automatically.</p>
+        </div>
+        <button onClick={refreshSetupData}>Refresh setup data</button>
+      </div>
       <form className="panel" onSubmit={submit}>
         <p className="muted">When this rule is enabled, valid signals from the selected Telegram channel are automatically checked and sent to the connected MT5 bridge account.</p>
-        {Object.entries(form).map(([key, value]) => <label key={key}>{key.replaceAll("_", " ")}<input value={value} onChange={(event) => setForm({ ...form, [key]: event.target.value })} /></label>)}
+        <div className="help-list">
+          <span>Channel: enable it on the Telegram page first.</span>
+          <span>MT5 account: connect it on the MT5 Accounts page first.</span>
+          <span>Allowed symbols: comma-separated symbols, like EURUSD,XAUUSD.</span>
+          <span>Max risk and max lot block oversized trades before order_send.</span>
+        </div>
+        <label>Name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+        <label>Telegram channel
+          <select value={form.channel_id} onChange={(event) => setForm({ ...form, channel_id: event.target.value })}>
+            <option value="">Select enabled channel</option>
+            {dialogs.filter((dialog) => dialog.channel_id).map((dialog) => <option key={dialog.dialog_id} value={dialog.channel_id}>{dialog.title} #{dialog.channel_id}</option>)}
+          </select>
+        </label>
+        <label>MT5 account
+          <select value={form.mt5_account_id} onChange={(event) => setForm({ ...form, mt5_account_id: event.target.value })}>
+            <option value="">Select MT5 account</option>
+            {accounts.map((account) => <option key={account.id} value={account.id}>{account.name} #{account.id}</option>)}
+          </select>
+        </label>
+        <label>Allowed symbols<input value={form.allowed_symbols} onChange={(event) => setForm({ ...form, allowed_symbols: event.target.value })} /></label>
+        <label>Max lot<input value={form.max_lot} onChange={(event) => setForm({ ...form, max_lot: event.target.value })} /></label>
+        <label>Max risk percent<input value={form.max_risk_percent} onChange={(event) => setForm({ ...form, max_risk_percent: event.target.value })} /></label>
+        <label>Max trades per day<input value={form.max_trades_per_day} onChange={(event) => setForm({ ...form, max_trades_per_day: event.target.value })} /></label>
+        <label>Duplicate window minutes<input value={form.duplicate_window_minutes} onChange={(event) => setForm({ ...form, duplicate_window_minutes: event.target.value })} /></label>
         <button>Create rule</button>
       </form>
       {error && <div className="error">{error}</div>}

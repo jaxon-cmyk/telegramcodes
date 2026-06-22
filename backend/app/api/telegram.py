@@ -83,6 +83,7 @@ async def dialogs(current_user: User = Depends(get_current_user), db: Session = 
             title=item.title,
             kind=item.kind,
             is_enabled=existing.get(item.dialog_id).is_enabled if item.dialog_id in existing else False,
+            channel_id=existing.get(item.dialog_id).id if item.dialog_id in existing else None,
         )
         for item in remote_dialogs
     ]

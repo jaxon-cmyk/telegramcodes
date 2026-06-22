@@ -62,6 +62,79 @@ Admins can also manage existing users from the Admin page:
 
 The backend blocks admins from deactivating themselves or removing their own admin role.
 
+## Credential Checklist
+
+Use this checklist when setting up a real account or walking a user through onboarding.
+
+### Server/Admin Credentials
+
+These are configured by the site owner in `backend/.env` on the Oracle server.
+
+- `JWT_SECRET`: create a long random string. Used to sign login tokens.
+- `ENCRYPTION_KEY`: generate with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. Used to encrypt Telegram sessions and MT5 bridge credentials.
+- `BOOTSTRAP_ADMIN_EMAIL`: first admin email.
+- `BOOTSTRAP_ADMIN_PASSWORD`: first admin password. Change it before inviting users.
+- `ALLOWED_ORIGINS`: use `http://YOUR_SERVER_IP` until there is a domain.
+
+### Telegram User Credentials
+
+Each user gets these from Telegram:
+
+1. Go to `https://my.telegram.org`.
+2. Log in with the Telegram phone number that is already inside the signal channels.
+3. Click API development tools.
+4. Create an app. App title/short name can be anything recognizable, such as `SignalBridge`.
+5. Copy `api_id` into SignalBridge `API ID`.
+6. Copy `api_hash` into SignalBridge `API Hash`.
+7. Enter the Telegram phone number with country code, such as `+15555550123`.
+8. Click Start verification.
+9. Enter the Telegram login code.
+10. Enter 2FA password only if Telegram asks for it.
+
+After verification:
+
+- Click Load dialogs.
+- Toggle the channels/groups you want to monitor.
+- The UI shows the internal Channel ID after a dialog is enabled.
+- Sync messages to parse signals and trigger automation rules.
+
+### MT5 Bridge Credentials
+
+The app is built for a cloud MT5 bridge/provider so Mac users do not need to run a local Windows MT5 terminal.
+
+You need these from the chosen MT5 bridge provider:
+
+- Provider account/login ID: put this in `Provider account ID`.
+- Provider API token/account token: put this in `Bridge token`.
+- Optional global provider API key: set `MT5_BRIDGE_API_KEY` in `backend/.env` if your provider uses a server-level key.
+- Provider base URL: set `MT5_BRIDGE_BASE_URL` in `backend/.env`.
+
+Current development behavior:
+
+- If `MT5_BRIDGE_API_KEY` is empty, the app uses a mock bridge response so the workflow can be tested safely.
+- To place real trades, configure the real provider URL/key and verify the provider's order schema matches `backend/app/services/mt5_bridge.py`.
+
+### Automation Rule IDs
+
+The Automation page now uses dropdowns where possible.
+
+- Telegram channel: enable it on the Telegram page first.
+- MT5 account: connect it on the MT5 Accounts page first.
+- Allowed symbols: comma-separated values such as `EURUSD,XAUUSD`.
+- Max lot: highest allowed order size.
+- Max risk percent: highest allowed signal risk.
+- Max trades per day: daily cap per rule.
+- Duplicate window minutes: blocks repeated signals for the same symbol/side.
+
+Auto trading starts only when all of these exist:
+
+- Verified Telegram account.
+- Enabled Telegram channel.
+- Connected MT5 bridge account.
+- Enabled automation rule for that exact channel/account.
+- Valid parsed signal with required fields.
+- Risk checks pass.
+
 ## Oracle Server Deployment by IP
 
 These steps deploy the app at `http://YOUR_SERVER_IP` with nginx serving the built frontend and proxying API routes to FastAPI on `127.0.0.1:8000`.
