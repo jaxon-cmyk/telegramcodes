@@ -143,7 +143,7 @@ The app is built for a cloud MT5 bridge/provider so Mac users do not need to run
 
 Why this matters: the official MQL5 Python Integration docs say the Python package establishes a connection with the MetaTrader 5 terminal and exposes terminal-backed functions like `account_info`, `terminal_info`, `symbols_get`, `symbol_info_tick`, `order_check`, `order_send`, `positions_get`, `history_orders_get`, and `history_deals_get`. That is great for a Windows machine running MT5 locally, but it is not the clean SaaS flow for Mac users logging into a website. SignalBridge keeps those same trading concepts, but sends them through `backend/app/services/mt5_bridge.py` to a cloud bridge/provider instead.
 
-Use a cloud provider that supports MT5 account status, positions, history, market data, order checks, and trade execution. MetaApi is one example of this provider style: its docs describe a cloud API for MetaTrader 4/5, adding a MetaTrader account to the provider app, then using REST or WebSocket APIs for account information, positions, history, market data, and trade execution.
+Use a cloud provider that supports MetaTrader 5 account status, positions, history, market data, order checks, and trade execution. MetaApi is one example of this provider style; for SignalBridge, add the account as platform `mt5` and keep the whole flow MetaTrader 5 focused.
 
 You need these from the chosen MT5 bridge provider:
 
@@ -157,7 +157,7 @@ Where to find each MT5/bridge value:
 | SignalBridge field | Where to find it with MetaApi | What it looks like |
 | --- | --- | --- |
 | `Name` | You make this up inside SignalBridge | `Shawn Demo MT5` |
-| `Provider account ID` | `https://app.metaapi.cloud` -> MetaTrader accounts/accounts list -> open the connected account -> copy its account `id` | Usually a long UUID |
+| `Provider account ID` | `https://app.metaapi.cloud` -> MetaTrader accounts/accounts list -> open the connected MetaTrader 5 account -> copy its account `id` | Usually a long UUID |
 | `Bridge token` | `https://app.metaapi.cloud` -> API/auth token area in the web app | Long secret API token |
 | `MT5_BRIDGE_API_KEY` | Same MetaApi API/auth token, placed in `backend/.env` on the server | Long secret API token |
 | `MT5_BRIDGE_BASE_URL` | Provider docs. For MetaApi provisioning/account management: `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai` | URL |
@@ -197,15 +197,15 @@ MT5_BRIDGE_BASE_URL=https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai
 14. Password: enter the MT5 password required by MetaApi.
 15. Server: enter the broker server name exactly as the broker shows it.
 16. Magic number: if MetaApi asks, enter a number used only by SignalBridge, such as `20260622`.
-17. Deploy or connect the account.
-18. Wait until MetaApi shows the account as deployed, connected, or synchronized.
+17. Deploy or connect the MetaTrader 5 account.
+18. Wait until MetaApi shows the MT5 account as deployed, connected, or synchronized.
 19. Open that MetaApi account's details page.
 20. Find the account `id`.
 21. Copy the account `id`.
 22. Open SignalBridge.
 23. Go to MT5 Accounts.
 24. Name: enter the same friendly label, such as `Shawn Demo MT5`.
-25. Provider account ID: paste the MetaApi account `id`.
+25. Provider account ID: paste the MetaApi MT5 account `id`.
 26. Bridge token: paste the MetaApi API/auth token.
 27. Click Connect MT5 account.
 28. Click Health check.
@@ -221,12 +221,12 @@ MetaApi provisioning/account-management API base URL from their docs: `https://m
 
 MetaApi trading/client API endpoints are separate from provisioning in their docs. Before live trading, confirm the exact trade/status endpoints and update `backend/app/services/mt5_bridge.py` to match the provider API.
 
-If you choose a different cloud MT5 provider, use the same pattern:
+If you choose a different cloud MT5 provider, use the same MetaTrader 5 pattern:
 
 1. Create provider account.
 2. Copy the provider API key/token.
-3. Add/deploy the user's MT5 account inside the provider.
-4. Copy the provider's connected MT5 account ID.
+3. Add/deploy the user's MetaTrader 5 account inside the provider.
+4. Copy the provider's connected MetaTrader 5 account ID.
 5. Paste provider account ID and token into SignalBridge.
 6. Set `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY`.
 7. Update `backend/app/services/mt5_bridge.py` if that provider's endpoints do not match the current adapter.

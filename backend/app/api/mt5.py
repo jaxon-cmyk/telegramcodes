@@ -28,7 +28,15 @@ def connect_account(payload: MT5AccountConnect, current_user: User = Depends(get
     )
     db.add(account)
     db.flush()
-    audit(db, action="mt5_account_connected", entity_type="mt5_account", user_id=current_user.id, actor_user_id=current_user.id, entity_id=str(account.id))
+    audit(
+        db,
+        action="mt5_account_connected",
+        entity_type="mt5_account",
+        user_id=current_user.id,
+        actor_user_id=current_user.id,
+        entity_id=str(account.id),
+        details={"provider": account.provider, "platform": "mt5"},
+    )
     db.commit()
     db.refresh(account)
     return account

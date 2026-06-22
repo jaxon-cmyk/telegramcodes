@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -128,7 +128,7 @@ class ParsedSignalRead(ORMModel):
 
 class MT5AccountConnect(BaseModel):
     name: str
-    provider: str = "cloud_bridge"
+    provider: Literal["metaapi_mt5", "cloud_mt5_bridge"] = "metaapi_mt5"
     provider_account_id: str
     credentials: dict[str, Any]
 

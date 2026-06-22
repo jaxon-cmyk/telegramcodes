@@ -187,7 +187,7 @@ export function SignalsPage() {
 
 export function MT5Page() {
   const { items, error, refresh } = useAsyncList<MT5Account>(() => api.mt5Accounts());
-  const [form, setForm] = useState({ name: "", provider: "cloud_bridge", provider_account_id: "", token: "" });
+  const [form, setForm] = useState({ name: "", provider: "metaapi_mt5", provider_account_id: "", token: "" });
   async function submit(event: FormEvent) {
     event.preventDefault();
     await api.connectMT5({ name: form.name, provider: form.provider, provider_account_id: form.provider_account_id, credentials: { token: form.token } });
@@ -198,14 +198,14 @@ export function MT5Page() {
       <div className="dashboard-hero">
         <div>
           <p className="eyebrow">MT5</p>
-          <h1>Cloud bridge accounts</h1>
-          <p>Connect the cloud provider account that can read status and send checked orders to the user's MT5 trading account. Use demo accounts first, then go live only after the bridge health check and order schema are confirmed.</p>
+          <h1>MetaTrader 5 cloud bridge accounts</h1>
+          <p>Connect the MetaTrader 5 provider account that can read status and send checked orders to the user's MT5 trading account. Use demo MT5 accounts first, then go live only after the bridge health check and MT5 order schema are confirmed.</p>
         </div>
       </div>
       <form className="panel" onSubmit={submit}>
         <div className="help-list">
-          <span>Name: internal label, like Main Forex Account.</span>
-          <span>Provider account ID: copy this from the connected account inside your MT5 bridge provider dashboard.</span>
+          <span>Name: internal label, like Shawn Demo MT5.</span>
+          <span>Provider account ID: copy this from the connected MetaTrader 5 account inside your MT5 bridge provider dashboard.</span>
           <span>Bridge token: provider API token or account token for that MT5 account. Keep it secret.</span>
           <span>If `MT5_BRIDGE_API_KEY` is empty on the server, SignalBridge stays in mock bridge mode and will not place live provider orders.</span>
           <span>After connecting, click Health check and confirm balance/equity/status before creating automation rules.</span>
