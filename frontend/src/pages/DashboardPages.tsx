@@ -84,7 +84,7 @@ export function TelegramPage() {
     setMessage("");
     try {
       await api.syncMessages(dialog.dialog_id);
-      setMessage(`Synced messages from ${dialog.title}. Parsed signal results are available on the Signals page.`);
+      setMessage(`Synced messages from ${dialog.title}. Valid signals are parsed and auto-traded when an enabled automation rule matches this channel.`);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Message sync failed.");
     }
@@ -222,8 +222,9 @@ export function AutomationPage() {
   }
   return (
     <section>
-      <div className="page-heading"><p className="eyebrow">Automation</p><h1>Risk and execution rules</h1></div>
+      <div className="page-heading"><p className="eyebrow">Automation</p><h1>Auto-trading risk rules</h1></div>
       <form className="panel" onSubmit={submit}>
+        <p className="muted">When this rule is enabled, valid signals from the selected Telegram channel are automatically checked and sent to the connected MT5 bridge account.</p>
         {Object.entries(form).map(([key, value]) => <label key={key}>{key.replaceAll("_", " ")}<input value={value} onChange={(event) => setForm({ ...form, [key]: event.target.value })} /></label>)}
         <button>Create rule</button>
       </form>

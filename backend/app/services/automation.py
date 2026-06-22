@@ -13,6 +13,10 @@ class AutomationEngine:
         symbol = (signal.symbol or "").upper()
         allowed = [item.upper() for item in (rule.allowed_symbols or [])]
 
+        if signal.status.value != "parsed":
+            reasons.append("Signal did not pass parser validation")
+        if not signal.symbol or not signal.side:
+            reasons.append("Signal is missing symbol or side")
         if not rule.is_enabled:
             reasons.append("Automation rule is disabled")
         if allowed and symbol not in allowed:

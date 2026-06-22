@@ -20,6 +20,7 @@ from app.schemas.common import (
 from app.services.audit import audit
 from app.services.parser import SignalParser
 from app.services.telegram_service import TelegramService
+from app.services.trade_execution import evaluate_and_execute_signal
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
 
@@ -167,6 +168,7 @@ async def sync_messages(
             rejection_reason=parse_result.rejection_reason,
         )
         db.add(signal)
+        db.flush()
         audit(
             db,
             action="telegram_message_synced",
@@ -176,6 +178,8 @@ async def sync_messages(
             entity_id=str(message.id),
             details={"dialog_id": dialog_id, "signal_status": signal.status.value},
         )
+        if signal.status == SignalStatus.parsed:
+            await evaluate_and_execute_signal(db, signal, actor_user_id=current_user.id, channel_id=channel.id)
     channel.last_sync_at = datetime.now(timezone.utc)
     db.commit()
     return list(db.scalars(select(TelegramMessage).where(TelegramMessage.user_id == current_user.id, TelegramMessage.channel_id == channel.id).order_by(TelegramMessage.sent_at.desc())))

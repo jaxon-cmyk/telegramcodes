@@ -232,3 +232,25 @@ Notes:
 - Synced Telegram messages are stored per user and automatically parsed into signal records.
 - The demo fallback exists so the app can be tested before real Telegram credentials are entered.
 - Real production use should be tested with a dedicated Telegram account before inviting users.
+
+## Auto Trading Behavior
+
+Auto trading is enabled through Automation rules:
+
+1. Connect Telegram.
+2. Enable a Telegram channel/group.
+3. Connect an MT5 bridge account.
+4. Create an enabled automation rule for that channel and MT5 account.
+5. Set safety limits: allowed symbols, max lot, max risk percent, max trades per day, stop-loss required, and duplicate window.
+6. Sync Telegram messages.
+
+When a new message syncs:
+
+- The message is stored under the signed-in user.
+- The parser creates a `ParsedSignal`.
+- If the signal is valid and an enabled rule matches the source channel, the app creates a `TradeIntent`.
+- The automation engine checks all safety limits.
+- If checks pass, the MT5 bridge runs `order_check` and `order_send`.
+- The app stores an `ExecutedTrade` and audit log.
+
+If a signal fails safety checks, it is stored as a blocked trade intent with the exact reason. Do not expose the backend port publicly; nginx should proxy API traffic to `127.0.0.1:8000`.

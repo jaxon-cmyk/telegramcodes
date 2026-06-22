@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -12,7 +14,7 @@ def _admin_headers(client: TestClient) -> dict[str, str]:
 def test_admin_can_create_user_and_reset_password():
     with TestClient(app) as client:
         headers = _admin_headers(client)
-        email = "created-user@example.com"
+        email = f"created-user-{uuid4().hex}@example.com"
 
         created = client.post(
             "/admin/users",
