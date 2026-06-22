@@ -34,12 +34,159 @@ npm install
 npm run dev
 ```
 
+Local app URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:8000/health`
+- API docs: `http://localhost:8000/docs`
+
 Default bootstrap admin:
 
 - Email: `admin@example.com`
 - Password: `ChangeMe123!`
 
 Change these in `backend/.env` before any real deployment.
+
+## Oracle Server Deployment by IP
+
+These steps deploy the app at `http://YOUR_SERVER_IP` with nginx serving the built frontend and proxying API routes to FastAPI on `127.0.0.1:8000`.
+
+Install server packages on Oracle Linux:
+
+```bash
+sudo dnf install -y git nginx python3 python3-pip
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo dnf install -y nodejs
+```
+
+Clone or update the repo:
+
+```bash
+git clone https://github.com/jaxon-cmyk/telegramcodes.git
+cd telegramcodes
+```
+
+Set up the backend:
+
+```bash
+cd ~/telegramcodes/backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Edit `backend/.env`:
+
+```bash
+nano .env
+```
+
+Minimum production values:
+
+```env
+DATABASE_URL=sqlite:///./dev.db
+JWT_SECRET=replace-with-a-long-random-secret
+ENCRYPTION_KEY=replace-with-fernet-key
+ALLOWED_ORIGINS=http://YOUR_SERVER_IP
+```
+
+Generate an encryption key:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Create `/etc/systemd/system/telegramcodes-backend.service`:
+
+```ini
+[Unit]
+Description=Telegramcodes FastAPI backend
+After=network.target
+
+[Service]
+User=opc
+WorkingDirectory=/home/opc/telegramcodes/backend
+Environment=PYTHONPATH=/home/opc/telegramcodes/backend
+ExecStart=/home/opc/telegramcodes/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Start the backend:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now telegramcodes-backend
+curl http://127.0.0.1:8000/health
+```
+
+Build the frontend:
+
+```bash
+cd ~/telegramcodes/frontend
+npm install
+npm run build
+```
+
+Create `/etc/nginx/conf.d/telegramcodes.conf`:
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    root /home/opc/telegramcodes/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ ^/(auth|admin|telegram|messages|signals|mt5|automation-rules|trade-intents|trades|invites|audit-logs|health) {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Enable nginx:
+
+```bash
+sudo nginx -t
+sudo systemctl enable --now nginx
+sudo systemctl reload nginx
+```
+
+Open the server firewall if `firewalld` is running:
+
+```bash
+sudo firewall-cmd --state
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --reload
+```
+
+Oracle Cloud Network Security Group inbound rules:
+
+- TCP `22` from your IP for SSH and VS Code.
+- TCP `80` from `0.0.0.0/0` for the website.
+- TCP `443` from `0.0.0.0/0` later when HTTPS is configured.
+
+Do not expose `8000`, `5173`, `5432`, or worker/internal ports publicly.
+
+Verify:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl http://YOUR_SERVER_IP/health
+```
+
+Then open `http://YOUR_SERVER_IP` in a browser.
 
 ## Production Notes
 
