@@ -34,6 +34,8 @@ export const api = {
   me: () => request("/auth/me"),
   createInvite: (email?: string) => request("/invites", { method: "POST", body: JSON.stringify({ email: email || null }) }),
   adminUsers: () => request("/admin/users"),
+  createAdminUser: (payload: Record<string, unknown>) =>
+    request("/admin/users", { method: "POST", body: JSON.stringify(payload) }),
   updateAdminUser: (id: number, payload: Record<string, unknown>) =>
     request(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   systemHealth: () => request("/admin/system-health"),

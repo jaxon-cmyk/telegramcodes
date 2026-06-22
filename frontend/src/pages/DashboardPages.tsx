@@ -251,6 +251,8 @@ export function LogsPage() {
 export function AdminPage({ currentUser }: { currentUser: User }) {
   const { items: users, error, refresh } = useAsyncList<User>(() => api.adminUsers());
   const [email, setEmail] = useState("");
+  const [newUser, setNewUser] = useState({ email: "", password: "", role: "user", is_active: true });
+  const [passwords, setPasswords] = useState<Record<number, string>>({});
   const [result, setResult] = useState("");
   const [notice, setNotice] = useState("");
   async function createInvite(event: FormEvent) {
@@ -268,6 +270,27 @@ export function AdminPage({ currentUser }: { currentUser: User }) {
       setNotice(err instanceof Error ? err.message : "Could not update user");
     }
   }
+  async function createUser(event: FormEvent) {
+    event.preventDefault();
+    setNotice("");
+    try {
+      await api.createAdminUser(newUser);
+      setNotice("User account created.");
+      setNewUser({ email: "", password: "", role: "user", is_active: true });
+      await refresh();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not create user");
+    }
+  }
+  async function resetPassword(userId: number) {
+    const password = passwords[userId];
+    if (!password) {
+      setNotice("Enter a new password first.");
+      return;
+    }
+    await updateUser(userId, { password });
+    setPasswords({ ...passwords, [userId]: "" });
+  }
   return (
     <section className="dashboard-page">
       <div className="dashboard-hero">
@@ -280,8 +303,27 @@ export function AdminPage({ currentUser }: { currentUser: User }) {
       </div>
 
       <div className="admin-grid">
+        <form className="panel" onSubmit={createUser}>
+          <h2>Create user account</h2>
+          <p className="muted">Create a ready-to-use account, set the starting password, choose the role, and decide if the account is active.</p>
+          <label>Email<input value={newUser.email} onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} /></label>
+          <label>Temporary password<input type="password" value={newUser.password} onChange={(event) => setNewUser({ ...newUser, password: event.target.value })} /></label>
+          <label>Role
+            <select value={newUser.role} onChange={(event) => setNewUser({ ...newUser, role: event.target.value })}>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <label className="inline-check">
+            <input type="checkbox" checked={newUser.is_active} onChange={(event) => setNewUser({ ...newUser, is_active: event.target.checked })} />
+            Active account
+          </label>
+          <button>Create user</button>
+        </form>
+
         <form className="panel" onSubmit={createInvite}>
           <h2>Create invite</h2>
+          <p className="muted">Use invites when you want the user to choose their own password during registration.</p>
           <label>Email optional<input value={email} onChange={(event) => setEmail(event.target.value)} /></label>
           <button>Create invite</button>
           {result && <div className="notice">Invite code: {result}</div>}
@@ -317,6 +359,14 @@ export function AdminPage({ currentUser }: { currentUser: User }) {
               <button disabled={item.id === currentUser.id} onClick={() => updateUser(item.id, { is_active: !item.is_active })}>
                 {item.is_active ? "Deactivate" : "Activate"}
               </button>
+              <input
+                className="compact-input"
+                type="password"
+                placeholder="New password"
+                value={passwords[item.id] ?? ""}
+                onChange={(event) => setPasswords({ ...passwords, [item.id]: event.target.value })}
+              />
+              <button onClick={() => resetPassword(item.id)}>Reset password</button>
             </span>
           </div>
         ))}

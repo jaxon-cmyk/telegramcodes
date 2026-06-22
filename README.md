@@ -47,6 +47,21 @@ Default bootstrap admin:
 
 Change these in `backend/.env` before any real deployment.
 
+## Admin User Onboarding
+
+Admins have two ways to add users:
+
+- Create invite: generates an invite code so the user can register and choose their own password.
+- Create user account: creates a ready-to-use account immediately with email, temporary password, role, and active/inactive status.
+
+Admins can also manage existing users from the Admin page:
+
+- Change role between `user` and `admin`.
+- Activate or deactivate accounts.
+- Reset a user's password by setting a new temporary password.
+
+The backend blocks admins from deactivating themselves or removing their own admin role.
+
 ## Oracle Server Deployment by IP
 
 These steps deploy the app at `http://YOUR_SERVER_IP` with nginx serving the built frontend and proxying API routes to FastAPI on `127.0.0.1:8000`.

@@ -24,6 +24,14 @@ class UserRead(ORMModel):
 class UserAdminUpdate(BaseModel):
     role: str | None = None
     is_active: bool | None = None
+    password: str | None = Field(default=None, min_length=8)
+
+
+class UserAdminCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+    role: str = "user"
+    is_active: bool = True
 
 
 class RegisterRequest(BaseModel):

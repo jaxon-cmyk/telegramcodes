@@ -5,9 +5,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_admin
+from app.core.security import hash_password
 from app.db.session import get_db
 from app.models import Invite, MT5Account, TelegramMessage, TradeIntent, TradeIntentStatus, User, UserRole
-from app.schemas.common import InviteCreate, InviteRead, UserAdminUpdate, UserRead
+from app.schemas.common import InviteCreate, InviteRead, UserAdminCreate, UserAdminUpdate, UserRead
 from app.services.audit import audit
 
 router = APIRouter(tags=["admin"])
@@ -32,6 +33,40 @@ def create_invite(payload: InviteCreate, admin: User = Depends(require_admin), d
 @router.get("/admin/users", response_model=list[UserRead])
 def list_users(_: User = Depends(require_admin), db: Session = Depends(get_db)) -> list[User]:
     return list(db.scalars(select(User).order_by(User.created_at.desc())))
+
+
+@router.post("/admin/users", response_model=UserRead)
+def create_user(
+    payload: UserAdminCreate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> User:
+    if payload.role not in {UserRole.admin.value, UserRole.user.value}:
+        raise HTTPException(status_code=400, detail="Role must be admin or user")
+    existing = db.scalar(select(User).where(User.email == payload.email.lower()))
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    user = User(
+        email=payload.email.lower(),
+        password_hash=hash_password(payload.password),
+        role=UserRole(payload.role),
+        is_active=payload.is_active,
+    )
+    db.add(user)
+    db.flush()
+    audit(
+        db,
+        action="admin_user_created",
+        entity_type="user",
+        user_id=user.id,
+        actor_user_id=admin.id,
+        entity_id=str(user.id),
+        details={"role": payload.role, "is_active": payload.is_active},
+    )
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 @router.patch("/admin/users/{user_id}", response_model=UserRead)
@@ -59,6 +94,10 @@ def update_user(
             raise HTTPException(status_code=400, detail="You cannot deactivate your own account")
         target.is_active = payload.is_active
         updates["is_active"] = payload.is_active
+
+    if payload.password is not None:
+        target.password_hash = hash_password(payload.password)
+        updates["password_reset"] = True
 
     audit(
         db,
