@@ -302,6 +302,67 @@ export function LogsPage() {
   return <ListPage title="Execution logs" eyebrow="Audit" error={error} refresh={refresh} items={items.map((item) => `${item.action} on ${item.entity_type}: ${JSON.stringify(item.details)}`)} />;
 }
 
+export function SetupGuidePage() {
+  return (
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Setup Guide</p>
+          <h1>Credentials and launch checklist</h1>
+          <p>Use this page when setting up a user from scratch. It shows what each credential is, where to get it, and where it belongs in SignalBridge.</p>
+        </div>
+      </div>
+
+      <div className="guide-grid">
+        <article className="section-card">
+          <h2>1. Telegram credentials</h2>
+          <ol className="guide-list">
+            <li>Go to <a className="text-link" href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a>.</li>
+            <li>Log in with the Telegram phone number that already belongs to the signal groups.</li>
+            <li>Open API development tools and create an app.</li>
+            <li>Copy `api_id` into Telegram API ID.</li>
+            <li>Copy `api_hash` into Telegram API Hash.</li>
+            <li>Enter the phone number with country code, start verification, then enter the Telegram code.</li>
+            <li>Enter the 2FA password only if Telegram asks for it.</li>
+          </ol>
+        </article>
+
+        <article className="section-card">
+          <h2>2. MT5 bridge credentials</h2>
+          <ol className="guide-list">
+            <li>Choose the cloud MT5 bridge/provider the business will use.</li>
+            <li>In that provider, connect the user's MT5 trading account.</li>
+            <li>Copy the provider account/login ID into Provider account ID.</li>
+            <li>Copy the provider account token/API token into Bridge token.</li>
+            <li>Set provider-wide `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` in `backend/.env` when going live.</li>
+          </ol>
+        </article>
+
+        <article className="section-card">
+          <h2>3. Automation rules</h2>
+          <ol className="guide-list">
+            <li>Enable a Telegram channel first so it receives a Channel ID.</li>
+            <li>Connect an MT5 account first so it appears in the MT5 account dropdown.</li>
+            <li>Create a rule for that channel/account pair.</li>
+            <li>Set allowed symbols, max lot, max risk percent, max trades per day, and duplicate window.</li>
+            <li>When messages sync, matching valid signals auto-trade only if every rule passes.</li>
+          </ol>
+        </article>
+
+        <article className="section-card">
+          <h2>4. Server secrets</h2>
+          <ol className="guide-list">
+            <li>`JWT_SECRET`: long random string for login tokens.</li>
+            <li>`ENCRYPTION_KEY`: Fernet key for Telegram sessions and MT5 tokens.</li>
+            <li>`ALLOWED_ORIGINS`: server IP/domain, such as `http://129.146.112.0`.</li>
+            <li>Keep backend port 8000 private; nginx should proxy to it locally.</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 export function AdminPage({ currentUser }: { currentUser: User }) {
   const { items: users, error, refresh } = useAsyncList<User>(() => api.adminUsers());
   const [email, setEmail] = useState("");

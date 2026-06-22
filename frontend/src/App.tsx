@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Shell } from "./components/Shell";
 import { api, clearToken, getToken } from "./services/api";
-import { AdminPage, AutomationPage, LogsPage, MessagesPage, MT5Page, OverviewPage, SignalsPage, TelegramPage, TradeIntentsPage, TradesPage } from "./pages/DashboardPages";
+import { AdminPage, AutomationPage, LogsPage, MessagesPage, MT5Page, OverviewPage, SetupGuidePage, SignalsPage, TelegramPage, TradeIntentsPage, TradesPage } from "./pages/DashboardPages";
 import { AuthPage } from "./pages/AuthPage";
 import type { User } from "./types/api";
 
@@ -30,14 +30,14 @@ export default function App() {
     void loadUser();
   }, []);
 
-  if (loading) return <div className="loading">Loading dashboard...</div>;
-  if (!user) return <AuthPage onAuthenticated={loadUser} />;
-
   useEffect(() => {
     if (user?.role !== "admin" && active === "admin") {
       setActive("overview");
     }
   }, [active, user]);
+
+  if (loading) return <div className="loading">Loading dashboard...</div>;
+  if (!user) return <AuthPage onAuthenticated={loadUser} />;
 
   const pages: Record<string, ReactElement> = {
     overview: <OverviewPage user={user} />,
@@ -49,6 +49,7 @@ export default function App() {
     intents: <TradeIntentsPage />,
     trades: <TradesPage />,
     logs: <LogsPage />,
+    setup: <SetupGuidePage />,
     admin: user.role === "admin" ? <AdminPage currentUser={user} /> : <OverviewPage user={user} />
   };
 

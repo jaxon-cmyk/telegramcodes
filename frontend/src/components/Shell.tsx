@@ -1,4 +1,4 @@
-import { Activity, Bot, Cable, FileText, Home, KeyRound, Lock, MessagesSquare, Shield, Sliders, UserCog, WalletCards } from "lucide-react";
+import { Activity, Bot, Cable, FileText, HelpCircle, Home, KeyRound, Lock, MessagesSquare, Shield, Sliders, UserCog, WalletCards } from "lucide-react";
 import type { ReactNode } from "react";
 import type { User } from "../types/api";
 
@@ -19,6 +19,7 @@ const nav: NavItem[] = [
   { id: "intents", label: "Trade Intents", icon: <Activity /> },
   { id: "trades", label: "Trade History", icon: <WalletCards /> },
   { id: "logs", label: "Execution Logs", icon: <Lock /> },
+  { id: "setup", label: "Setup Guide", icon: <HelpCircle /> },
   { id: "admin", label: "Admin", icon: <UserCog />, adminOnly: true }
 ];
 
