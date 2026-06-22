@@ -58,24 +58,52 @@ export function TelegramPage() {
 
   async function submitConnect(event: FormEvent) {
     event.preventDefault();
-    const result = await api.connectTelegram(connect) as { session_id: number; status: string };
-    setVerify({ ...verify, session_id: String(result.session_id) });
-    setMessage(`Telegram status: ${result.status}`);
+    setMessage("");
+    try {
+      const result = await api.connectTelegram(connect) as { session_id: number; status: string };
+      setVerify({ ...verify, session_id: String(result.session_id) });
+      setMessage(`Telegram status: ${result.status}. Enter the code Telegram sends to continue.`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Telegram connection failed.");
+    }
   }
 
   async function submitVerify(event: FormEvent) {
     event.preventDefault();
-    await api.verifyTelegram({ ...verify, session_id: Number(verify.session_id) });
-    setMessage("Telegram verified. Dialogs can now be loaded.");
-    await refresh();
+    setMessage("");
+    try {
+      const result = await api.verifyTelegram({ ...verify, session_id: Number(verify.session_id) }) as { status: string };
+      setMessage(result.status === "connected" ? "Telegram verified. Dialogs can now be loaded." : `Telegram status: ${result.status}`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Telegram verification failed.");
+    }
+  }
+
+  async function syncDialog(dialog: TelegramDialog) {
+    setMessage("");
+    try {
+      await api.syncMessages(dialog.dialog_id);
+      setMessage(`Synced messages from ${dialog.title}. Parsed signal results are available on the Signals page.`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Message sync failed.");
+    }
   }
 
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Telegram</p><h1>Connections and channels</h1></div>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Telegram</p>
+          <h1>Connections and channels</h1>
+          <p>Connect a Telegram account, load the channels/groups it can access, enable sources, then sync messages into the parser.</p>
+        </div>
+        <button onClick={refresh}>Load dialogs</button>
+      </div>
       <div className="split">
         <form className="panel" onSubmit={submitConnect}>
           <h2>Connect Telegram</h2>
+          <p className="muted">Use credentials from my.telegram.org. Private channels work when this Telegram account already has access.</p>
           <label>API ID<input value={connect.api_id} onChange={(event) => setConnect({ ...connect, api_id: event.target.value })} /></label>
           <label>API Hash<input value={connect.api_hash} onChange={(event) => setConnect({ ...connect, api_hash: event.target.value })} /></label>
           <label>Phone<input value={connect.phone} onChange={(event) => setConnect({ ...connect, phone: event.target.value })} /></label>
@@ -90,16 +118,17 @@ export function TelegramPage() {
         </form>
       </div>
       {message && <div className="notice">{message}</div>}
-      {error && <div className="error">{error}</div>}
+      {error && <div className="empty-state">Connect Telegram first, then click Load dialogs. Server message: {error}</div>}
       <div className="table">
         {items.map((dialog) => (
           <div className="row" key={dialog.dialog_id}>
             <span>{dialog.title}</span><span>{dialog.kind}</span><span>{dialog.is_enabled ? "Enabled" : "Disabled"}</span>
             <button onClick={() => api.enableChannel(dialog.dialog_id, !dialog.is_enabled).then(refresh)}>Toggle</button>
-            <button onClick={() => api.syncMessages(dialog.dialog_id)}>Sync</button>
+            <button onClick={() => syncDialog(dialog)}>Sync</button>
           </div>
         ))}
       </div>
+      {!items.length && !error && <div className="empty-state">No dialogs loaded yet. Connect Telegram or click Load dialogs after verification.</div>}
     </section>
   );
 }
@@ -107,16 +136,26 @@ export function TelegramPage() {
 export function MessagesPage() {
   const { items, error, refresh, setItems } = useAsyncList<Message>(() => api.messages());
   const [query, setQuery] = useState("");
+  const [notice, setNotice] = useState("");
   async function search() {
     const result = query ? await api.searchMessages(query) : await api.messages();
     return result as Message[];
   }
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Messages</p><h1>Stored Telegram messages</h1></div>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Messages</p>
+          <h1>Stored Telegram messages</h1>
+          <p>Review synced Telegram posts, search message history, and manually re-run the parser when needed.</p>
+        </div>
+        <button onClick={refresh}>Refresh</button>
+      </div>
       <div className="toolbar"><input placeholder="Search messages" value={query} onChange={(event) => setQuery(event.target.value)} /><button onClick={() => search().then(setItems)}>Search</button><button onClick={refresh}>Refresh</button></div>
       {error && <div className="error">{error}</div>}
-      <div className="cards">{items.map((item) => <article key={item.id}><strong>{item.sender_name ?? "Unknown"}</strong><p>{item.text}</p><button onClick={() => api.reparse(item.id)}>Parse</button></article>)}</div>
+      {notice && <div className="notice">{notice}</div>}
+      <div className="cards">{items.map((item) => <article key={item.id}><strong>{item.sender_name ?? "Unknown"}</strong><p>{item.text}</p><button onClick={() => api.reparse(item.id).then(() => setNotice("Message parsed. Check the Signals page for the result."))}>Parse</button></article>)}</div>
+      {!items.length && <div className="empty-state">No messages yet. Go to Telegram, enable a dialog, then sync messages.</div>}
     </section>
   );
 }
@@ -124,11 +163,18 @@ export function MessagesPage() {
 export function SignalsPage() {
   const { items, error, refresh } = useAsyncList<ParsedSignal>(() => api.signals());
   return (
-    <section>
-      <div className="page-heading"><p className="eyebrow">Signals</p><h1>Parsed trade signals</h1></div>
-      <button onClick={refresh}>Refresh signals</button>
+    <section className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Signals</p>
+          <h1>Parsed trade signals</h1>
+          <p>Signals are created automatically during Telegram sync, then validated before automation can use them.</p>
+        </div>
+        <button onClick={refresh}>Refresh signals</button>
+      </div>
       {error && <div className="error">{error}</div>}
       <div className="table">{items.map((signal) => <div className="row" key={signal.id}><span>{signal.symbol ?? "No symbol"}</span><span>{signal.side ?? "No side"}</span><span>{signal.status}</span><span>{Math.round(signal.confidence * 100)}%</span><button onClick={() => api.executeTest(signal.id)}>Evaluate trade</button></div>)}</div>
+      {!items.length && <div className="empty-state">No parsed signals yet. Sync Telegram messages or manually parse a stored message.</div>}
     </section>
   );
 }

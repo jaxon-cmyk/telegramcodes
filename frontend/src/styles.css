@@ -14,6 +14,7 @@ button:disabled { cursor: not-allowed; opacity: 0.45; filter: none; }
 input { width: 100%; border: 1px solid #263750; border-radius: 8px; background: #0d1422; color: #f5f7fb; padding: 10px 12px; margin-top: 6px; }
 label { display: grid; gap: 4px; color: #9fb0ca; font-size: 13px; }
 h1, h2, p { margin-top: 0; }
+.muted { color: #8da0bd; line-height: 1.5; }
 
 .loading { padding: 48px; }
 .app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; background: #080c14; }
@@ -66,6 +67,7 @@ nav button.active { background: #132136; color: #fff; box-shadow: inset 3px 0 0 
 .notice, .error { border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
 .notice { background: #12291e; color: #93f0b5; }
 .error { background: #35121b; color: #ff9fb3; }
+.empty-state { border: 1px dashed #263750; border-radius: 8px; color: #9fb0ca; background: #0b111d; padding: 18px; }
 .auth-form { border: 1px solid #1b2a42; background: #0d1422; border-radius: 8px; padding: 24px; display: grid; gap: 14px; }
 .link-button { background: transparent; color: #61d5ff; padding: 6px; }
 .public-site { min-height: 100vh; background: radial-gradient(circle at 20% 0%, #14365a 0%, transparent 34%), #070a12; }

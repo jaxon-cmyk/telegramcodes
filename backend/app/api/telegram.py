@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.security import decrypt_secret, encrypt_secret
 from app.db.session import get_db
-from app.models import TelegramChannel, TelegramMessage, TelegramSession, User
+from app.models import ParsedSignal, SignalStatus, TelegramChannel, TelegramMessage, TelegramSession, User
 from app.schemas.common import (
     ChannelEnableRequest,
     ChannelRead,
@@ -18,6 +18,7 @@ from app.schemas.common import (
     TelegramVerifyRequest,
 )
 from app.services.audit import audit
+from app.services.parser import SignalParser
 from app.services.telegram_service import TelegramService
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
@@ -124,6 +125,7 @@ async def sync_messages(
     if not channel:
         raise HTTPException(status_code=404, detail="Enable channel before syncing messages")
     service = TelegramService()
+    parser = SignalParser()
     session = db.scalar(select(TelegramSession).where(TelegramSession.id == channel.telegram_session_id, TelegramSession.user_id == current_user.id))
     for item in await service.fetch_messages(dialog_id, decrypt_secret(session.session_encrypted) if session else None):
         existing = db.scalar(
@@ -135,16 +137,44 @@ async def sync_messages(
         )
         if existing:
             continue
-        db.add(
-            TelegramMessage(
-                user_id=current_user.id,
-                channel_id=channel.id,
-                telegram_message_id=item["telegram_message_id"],
-                text=item["text"],
-                sender_name=item.get("sender_name"),
-                sent_at=item.get("sent_at") or datetime.now(timezone.utc),
-                raw_payload=item.get("raw_payload", {}),
-            )
+        message = TelegramMessage(
+            user_id=current_user.id,
+            channel_id=channel.id,
+            telegram_message_id=item["telegram_message_id"],
+            text=item["text"],
+            sender_name=item.get("sender_name"),
+            sent_at=item.get("sent_at") or datetime.now(timezone.utc),
+            raw_payload=item.get("raw_payload", {}),
+        )
+        db.add(message)
+        db.flush()
+
+        parse_result = parser.parse(message.text)
+        signal = ParsedSignal(
+            user_id=current_user.id,
+            message_id=message.id,
+            symbol=parse_result.symbol,
+            side=parse_result.side,
+            entry=parse_result.entry,
+            stop_loss=parse_result.stop_loss,
+            take_profits=parse_result.take_profits,
+            lot=parse_result.lot,
+            risk_percent=parse_result.risk_percent,
+            confidence=parse_result.confidence,
+            parser_source=parse_result.parser_source,
+            explanation=parse_result.explanation,
+            status=SignalStatus.parsed if parse_result.is_valid else SignalStatus.rejected,
+            rejection_reason=parse_result.rejection_reason,
+        )
+        db.add(signal)
+        audit(
+            db,
+            action="telegram_message_synced",
+            entity_type="telegram_message",
+            user_id=current_user.id,
+            actor_user_id=current_user.id,
+            entity_id=str(message.id),
+            details={"dialog_id": dialog_id, "signal_status": signal.status.value},
         )
     channel.last_sync_at = datetime.now(timezone.utc)
     db.commit()

@@ -197,3 +197,23 @@ Then open `http://YOUR_SERVER_IP` in a browser.
 - Configure `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` for the chosen cloud MT5 provider.
 - The Telegram service already contains the Telethon session-string flow; verify it against real Telegram app credentials before production use.
 - Keep the MT5 adapter provider-based unless you intentionally add a separate Windows terminal/agent option.
+
+## Telegram Setup
+
+Each user connects their own Telegram account from the dashboard:
+
+1. Go to `https://my.telegram.org`.
+2. Log in with the Telegram phone number.
+3. Open API development tools.
+4. Create an app and copy the `api_id` and `api_hash`.
+5. In SignalBridge, open Telegram, enter API ID, API hash, and the phone number.
+6. Enter the verification code sent by Telegram.
+7. If the account has 2FA enabled, enter the Telegram 2FA password.
+8. Load dialogs, enable the channels/groups to monitor, then click Sync.
+
+Notes:
+
+- Private channels only appear if the connected Telegram account already has access.
+- Synced Telegram messages are stored per user and automatically parsed into signal records.
+- The demo fallback exists so the app can be tested before real Telegram credentials are entered.
+- Real production use should be tested with a dedicated Telegram account before inviting users.
