@@ -141,28 +141,37 @@ After verification:
 
 The main client-facing setup uses MetaApi. Clients do not need to run a Windows server. They sign up for MetaApi, connect their MT5 account there, then paste the MetaApi account details into SignalBridge.
 
+Which MetaApi option to use:
+
+1. Use **Regular subscription** first. MetaApi currently lists it at about `$30/month`, includes one free MT account, and has a 7-day trial.
+2. Do not start with **Extended subscription** unless the client needs higher limits, dedicated API servers, or priority support.
+3. Do not use **MetaApi MetaTrader Manager API** unless you are a broker or broker partner with manager access to MT servers.
+4. Tell clients API access can be billed pay-as-you-go on top of the subscription, so they should watch MetaApi usage/billing.
+5. For your first live client, use a demo MT5 account through Regular before connecting a live account.
+
 What to tell clients:
 
 1. Go to `https://app.metaapi.cloud`.
 2. Create a MetaApi account or log in.
-3. Start with a demo MetaTrader 5 account first.
-4. In MetaApi, add a MetaTrader account.
-5. Choose platform `mt5`.
-6. Enter the broker server name exactly as the broker shows it.
-7. Enter the MT5 login number from the broker portal, MT5 app, or broker welcome email.
-8. Enter the MT5 trading password. Investor passwords are read-only and cannot place trades.
-9. Deploy/connect the account in MetaApi.
-10. Wait until MetaApi shows the account as connected, deployed, or synchronized.
-11. Copy the MetaApi account ID.
-12. Copy the MetaApi API/auth token.
-13. Open SignalBridge.
-14. Go to MT5 Accounts.
-15. Name: enter a friendly label, such as `Client Demo MT5`.
-16. MetaApi account ID: paste the MetaApi account ID.
-17. MetaApi token: paste the MetaApi API/auth token.
-18. Click Connect MT5 account.
-19. Click Health check.
-20. Confirm SignalBridge shows connected status, balance, or equity.
+3. Choose **Regular subscription** unless you told them otherwise.
+4. Start with a demo MetaTrader 5 account first.
+5. In MetaApi, add a MetaTrader account.
+6. Choose platform `mt5`.
+7. Enter the broker server name exactly as the broker shows it.
+8. Enter the MT5 login number from the broker portal, MT5 app, or broker welcome email.
+9. Enter the MT5 trading password. Investor passwords are read-only and cannot place trades.
+10. Deploy/connect the account in MetaApi.
+11. Wait until MetaApi shows the account as connected, deployed, or synchronized.
+12. Copy the MetaApi account ID.
+13. Copy the MetaApi API/auth token.
+14. Open SignalBridge.
+15. Go to MT5 Accounts.
+16. Name: enter a friendly label, such as `Client Demo MT5`.
+17. MetaApi account ID: paste the MetaApi account ID.
+18. MetaApi token: paste the MetaApi API/auth token.
+19. Click Connect MT5 account.
+20. Click Health check.
+21. Confirm SignalBridge shows connected status, balance, or equity.
 
 Where to find each MT5/MetaApi value:
 

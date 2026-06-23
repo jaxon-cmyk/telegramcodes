@@ -204,6 +204,7 @@ export function MT5Page() {
       </div>
       <form className="panel" onSubmit={submit}>
         <div className="help-list">
+          <span>Recommended MetaApi plan: Regular first. Upgrade only if usage or support needs require it.</span>
           <span>Name: internal label, like Shawn Demo MT5.</span>
           <span>MetaApi account ID: copy this from the client's connected MetaTrader 5 account in MetaApi.</span>
           <span>Bridge token: client's MetaApi API/auth token. Keep it secret.</span>
@@ -337,6 +338,8 @@ export function SetupGuidePage() {
           <ol className="guide-list">
             <li>Start with a demo MT5 trading account.</li>
             <li>Tell the client to sign up or log in at <a className="text-link" href="https://app.metaapi.cloud" target="_blank" rel="noreferrer">app.metaapi.cloud</a>.</li>
+            <li>Tell the client to choose MetaApi Regular first. Do not use Extended unless they need higher limits or priority support.</li>
+            <li>Do not use MetaApi Manager API unless the client is a broker or broker partner with MT server manager access.</li>
             <li>In MetaApi, add a MetaTrader account and choose platform mt5.</li>
             <li>Have the client enter their broker server, MT5 login number, and MT5 trading password in MetaApi.</li>
             <li>Wait until MetaApi says the account is connected, deployed, or synchronized.</li>
