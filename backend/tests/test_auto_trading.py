@@ -37,7 +37,7 @@ def test_telegram_sync_auto_executes_when_rule_allows_signal():
             "/mt5/accounts/connect",
             json={
                 "name": "Demo MT5",
-                "provider": "self_hosted_mt5_bridge",
+                "provider": "metaapi_mt5",
                 "provider_account_id": f"demo-{uuid4().hex}",
                 "credentials": {"token": "demo"},
             },

@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
     encryption_key: str | None = None
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
-    mt5_bridge_base_url: AnyHttpUrl | str = "http://127.0.0.1:8100"
+    mt5_bridge_provider: str = "metaapi"
+    mt5_bridge_base_url: AnyHttpUrl | str = "https://mt-client-api-v1.new-york.agiliumtrade.ai"
     mt5_bridge_api_key: str | None = None
     ai_parser_provider: str = "disabled"
     ai_parser_api_key: str | None = None

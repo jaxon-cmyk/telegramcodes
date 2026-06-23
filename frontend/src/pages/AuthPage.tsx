@@ -88,7 +88,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
               <article>
                 <small>MT5 bridge</small>
                 <strong>Trade intent ready</strong>
-                <p>Order check and order send are routed through your self-hosted Windows MT5 bridge.</p>
+                <p>Order check and order send are routed through the connected MetaApi MT5 account.</p>
               </article>
             </div>
             <div className="console-footer">
@@ -122,7 +122,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
             <article>
               <span>04</span>
               <h3>Control MT5 trades</h3>
-              <p>Automation rules decide if a validated signal becomes a trade intent for the self-hosted MT5 bridge.</p>
+              <p>Automation rules decide if a validated signal becomes a trade intent for the connected MetaApi MT5 bridge.</p>
             </article>
           </div>
         </section>

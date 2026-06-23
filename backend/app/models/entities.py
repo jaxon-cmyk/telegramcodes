@@ -131,7 +131,7 @@ class MT5Account(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
-    provider: Mapped[str] = mapped_column(String(100), default="self_hosted_mt5_bridge")
+    provider: Mapped[str] = mapped_column(String(100), default="metaapi_mt5")
     provider_account_id: Mapped[str] = mapped_column(String(255))
     credentials_encrypted: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(50), default="connected")
