@@ -88,12 +88,12 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
               <article>
                 <small>MT5 bridge</small>
                 <strong>Trade intent ready</strong>
-                <p>Order check and order send are routed through the configured provider.</p>
+                <p>Order check and order send are routed through your self-hosted Windows MT5 bridge.</p>
               </article>
             </div>
             <div className="console-footer">
               <span>Validated signal</span>
-              <strong>Ready for MT5 provider check</strong>
+              <strong>Ready for MT5 bridge check</strong>
             </div>
           </div>
         </section>
@@ -122,7 +122,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
             <article>
               <span>04</span>
               <h3>Control MT5 trades</h3>
-              <p>Automation rules decide if a validated signal becomes a trade intent for the MT5 cloud bridge.</p>
+              <p>Automation rules decide if a validated signal becomes a trade intent for the self-hosted MT5 bridge.</p>
             </article>
           </div>
         </section>
@@ -132,7 +132,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
             <p className="eyebrow">Risk controls</p>
             <h2>Auto trading, but not uncontrolled trading.</h2>
             <p>
-              Every trade intent is checked against user rules before provider submission. Blocked signals
+              Every trade intent is checked against user rules before MT5 bridge submission. Blocked signals
               stay visible with the exact reason, so users can audit what happened.
             </p>
           </div>
@@ -142,7 +142,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => void }) {
             <li>Stop-loss required option</li>
             <li>Max trades per day</li>
             <li>Duplicate signal prevention</li>
-            <li>Provider failure logging</li>
+            <li>MT5 bridge failure logging</li>
           </ul>
         </section>
 

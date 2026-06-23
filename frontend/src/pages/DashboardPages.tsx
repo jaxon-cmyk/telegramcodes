@@ -187,7 +187,7 @@ export function SignalsPage() {
 
 export function MT5Page() {
   const { items, error, refresh } = useAsyncList<MT5Account>(() => api.mt5Accounts());
-  const [form, setForm] = useState({ name: "", provider: "metaapi_mt5", provider_account_id: "", token: "" });
+  const [form, setForm] = useState({ name: "", provider: "self_hosted_mt5_bridge", provider_account_id: "", token: "" });
   async function submit(event: FormEvent) {
     event.preventDefault();
     await api.connectMT5({ name: form.name, provider: form.provider, provider_account_id: form.provider_account_id, credentials: { token: form.token } });
@@ -198,20 +198,20 @@ export function MT5Page() {
       <div className="dashboard-hero">
         <div>
           <p className="eyebrow">MT5</p>
-          <h1>MetaTrader 5 cloud bridge accounts</h1>
-          <p>Connect the MetaTrader 5 provider account that can read status and send checked orders to the user's MT5 trading account. Use demo MT5 accounts first, then go live only after the bridge health check and MT5 order schema are confirmed.</p>
+          <h1>MetaTrader 5 bridge accounts</h1>
+          <p>Connect the self-hosted MetaTrader 5 bridge running on your Windows MT5 machine. Use demo MT5 accounts first, then go live only after the bridge health check and MT5 order flow are confirmed.</p>
         </div>
       </div>
       <form className="panel" onSubmit={submit}>
         <div className="help-list">
           <span>Name: internal label, like Shawn Demo MT5.</span>
-          <span>Provider account ID: copy this from the connected MetaTrader 5 account inside your MT5 bridge provider dashboard.</span>
-          <span>Bridge token: provider API token or account token for that MT5 account. Keep it secret.</span>
-          <span>If `MT5_BRIDGE_API_KEY` is empty on the server, SignalBridge stays in mock bridge mode and will not place live provider orders.</span>
+          <span>MT5 login / bridge account ID: use the MT5 login number or bridge nickname for the Windows MT5 terminal.</span>
+          <span>Bridge token: shared secret used by the Oracle backend and the Windows bridge. Keep it secret.</span>
+          <span>If `MT5_BRIDGE_API_KEY` is empty on the server, SignalBridge stays in mock bridge mode and will not place live MT5 orders.</span>
           <span>After connecting, click Health check and confirm balance/equity/status before creating automation rules.</span>
         </div>
         <label>Name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-        <label>Provider account ID<input value={form.provider_account_id} onChange={(event) => setForm({ ...form, provider_account_id: event.target.value })} /></label>
+        <label>MT5 login / bridge account ID<input value={form.provider_account_id} onChange={(event) => setForm({ ...form, provider_account_id: event.target.value })} /></label>
         <label>Bridge token<input value={form.token} onChange={(event) => setForm({ ...form, token: event.target.value })} /></label>
         <button>Connect MT5 account</button>
       </form>
@@ -336,15 +336,14 @@ export function SetupGuidePage() {
           <h2>2. MT5 bridge credentials</h2>
           <ol className="guide-list">
             <li>Start with a demo MT5 trading account.</li>
-            <li>Go to <a className="text-link" href="https://app.metaapi.cloud" target="_blank" rel="noreferrer">app.metaapi.cloud</a> and log in.</li>
-            <li>Find the MetaApi API/auth token in the MetaApi web app. Paste it into SignalBridge Bridge token.</li>
-            <li>On the server, put the same token in `MT5_BRIDGE_API_KEY`.</li>
-            <li>Set `MT5_BRIDGE_BASE_URL` to `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai` for the MetaApi provisioning/account-management API.</li>
-            <li>In MetaApi, add a MetaTrader account with platform mt5.</li>
-            <li>Find the MT5 login number, server name, and password in the user's broker portal, MT5 app, or broker welcome email.</li>
-            <li>Deploy/connect the account and wait until MetaApi shows it as connected or synchronized.</li>
-            <li>Open the connected MetaApi account details and copy its account `id`.</li>
-            <li>Paste that account `id` into SignalBridge Provider account ID.</li>
+            <li>Get a Windows machine: easiest is a second Oracle Windows Server instance; cheapest is a spare Windows PC that stays on 24/7.</li>
+            <li>Run MetaTrader 5 on that Windows VPS or Windows PC.</li>
+            <li>Log into MT5 with the broker login number, server name, and password from the broker portal or welcome email.</li>
+            <li>Run the included `mt5-local-bridge` service on that same Windows machine.</li>
+            <li>Create one long shared secret and put it in `MT5_BRIDGE_API_KEY` on both Oracle and the Windows bridge.</li>
+            <li>Set `MT5_BRIDGE_BASE_URL` on Oracle to the Windows bridge URL, like `http://WINDOWS_SERVER_IP:8100`.</li>
+            <li>In SignalBridge Provider account ID, enter the MT5 login number or bridge nickname.</li>
+            <li>In SignalBridge Bridge token, paste the shared bridge secret.</li>
             <li>Click Health check in MT5 Accounts and confirm status, balance, or equity before automation.</li>
           </ol>
         </article>
@@ -366,8 +365,8 @@ export function SetupGuidePage() {
             <li>`JWT_SECRET`: long random string for login tokens.</li>
             <li>`ENCRYPTION_KEY`: Fernet key for Telegram sessions and MT5 tokens.</li>
             <li>`ALLOWED_ORIGINS`: server IP/domain, such as `http://129.146.112.0`.</li>
-            <li>`MT5_BRIDGE_BASE_URL`: cloud provider API base URL. For MetaApi provisioning, the docs show `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai`.</li>
-            <li>`MT5_BRIDGE_API_KEY`: server/provider API key from the provider web app. Empty means mock bridge mode.</li>
+            <li>`MT5_BRIDGE_BASE_URL`: Windows MT5 bridge URL, such as `http://WINDOWS_SERVER_IP:8100`.</li>
+            <li>`MT5_BRIDGE_API_KEY`: shared bridge secret. Empty means mock bridge mode.</li>
             <li>Keep backend port 8000 private; nginx should proxy to it locally.</li>
           </ol>
         </article>
@@ -379,7 +378,7 @@ export function SetupGuidePage() {
             <li>Confirm broker symbol names match the allowlist, including suffixes like EURUSD.a or XAUUSDm.</li>
             <li>Keep stop-loss required, max lot low, max risk low, and max trades per day conservative.</li>
             <li>Send one tiny test signal and review Trade Intents, Trade History, and Execution Logs.</li>
-            <li>If the provider's order API is different, update `backend/app/services/mt5_bridge.py` before live trading.</li>
+            <li>Keep the Windows bridge online, MT5 logged in, and the bridge port firewalled.</li>
           </ol>
         </article>
       </div>

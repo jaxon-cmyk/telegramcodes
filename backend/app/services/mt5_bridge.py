@@ -6,12 +6,12 @@ from app.core.config import get_settings
 
 
 class MT5Bridge:
-    """Cloud bridge abstraction based on MQL5 Python trading concepts.
+    """Self-hosted bridge abstraction based on MQL5 Python trading concepts.
 
     Official MQL5 Python docs expose account_info, terminal_info, symbol data,
     order_check/order_send, positions, order history, and deal history against a
-    local terminal. This adapter keeps those concepts but sends them to a cloud
-    provider so Mac users are not forced to run a local Windows terminal.
+    local terminal. This adapter sends those concepts to our Windows bridge so
+    website users are not forced to run MT5 locally on their own machines.
     """
 
     def __init__(self) -> None:
@@ -22,7 +22,7 @@ class MT5Bridge:
             return {
                 "status": "mock_connected",
                 "account_info": {"login": provider_account_id, "balance": 10000.0, "equity": 10075.25},
-                "terminal_info": {"provider": "cloud_bridge_stub"},
+                "terminal_info": {"bridge": "mock_self_hosted_mt5_bridge"},
             }
         async with httpx.AsyncClient(base_url=str(self.settings.mt5_bridge_base_url)) as client:
             response = await client.get(

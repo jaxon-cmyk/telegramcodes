@@ -23,6 +23,8 @@ class AutomationEngine:
             reasons.append(f"{symbol} is not in the allowed symbol list")
         if rule.require_stop_loss and not signal.stop_loss:
             reasons.append("Stop loss is required")
+        if not signal.lot:
+            reasons.append("Signal lot is required")
         if signal.lot and signal.lot > rule.max_lot:
             reasons.append("Signal lot exceeds max lot")
         if signal.risk_percent and signal.risk_percent > rule.max_risk_percent:

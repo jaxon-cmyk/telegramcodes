@@ -4,7 +4,7 @@ Production should run this as a separate process on Oracle. The worker owns:
 - Telegram history sync and real-time listener loops.
 - Signal parsing from newly stored messages.
 - Automation rule evaluation and trade-intent queueing.
-- MT5 bridge health checks and provider failure audit logs.
+- MT5 bridge health checks and bridge failure audit logs.
 """
 
 import asyncio

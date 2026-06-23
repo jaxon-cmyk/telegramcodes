@@ -128,7 +128,7 @@ class ParsedSignalRead(ORMModel):
 
 class MT5AccountConnect(BaseModel):
     name: str
-    provider: Literal["metaapi_mt5", "cloud_mt5_bridge"] = "metaapi_mt5"
+    provider: Literal["self_hosted_mt5_bridge"] = "self_hosted_mt5_bridge"
     provider_account_id: str
     credentials: dict[str, Any]
 

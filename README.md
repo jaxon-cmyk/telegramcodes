@@ -3,7 +3,7 @@
 Greenfield SaaS scaffold based on the requested plan and the two source references:
 
 - `Rantoniaina/telegram-to-mt5`: React + FastAPI + Telethon-style Telegram connection, dialogs, messages, search, auth, and 2FA flow.
-- [MQL5 Python Integration docs](https://www.mql5.com/en/docs/python_metatrader5): account info, terminal info, symbols, order checks, order sending, positions, order history, and deal history. The official Python package connects to a local MT5 terminal, so this app wraps those concepts behind a cloud MT5 bridge for Mac-friendly SaaS use.
+- [MQL5 Python Integration docs](https://www.mql5.com/en/docs/python_metatrader5): account info, terminal info, symbols, order checks, order sending, positions, order history, and deal history. The official Python package connects to a local MetaTrader 5 terminal, so this app wraps those concepts behind a self-hosted MT5 bridge instead of a paid third-party provider.
 
 ## Included
 
@@ -137,130 +137,121 @@ After verification:
 - The UI shows the internal Channel ID after a dialog is enabled.
 - Sync messages to parse signals and trigger automation rules.
 
-### MT5 Bridge Credentials
+### Free Self-Hosted MT5 Bridge Credentials
 
-The app is built for a cloud MT5 bridge/provider so Mac users do not need to run a local Windows MT5 terminal.
+The app no longer depends on MetaApi or another paid MT5 API provider. The free route is:
 
-Why this matters: the official MQL5 Python Integration docs say the Python package establishes a connection with the MetaTrader 5 terminal and exposes terminal-backed functions like `account_info`, `terminal_info`, `symbols_get`, `symbol_info_tick`, `order_check`, `order_send`, `positions_get`, `history_orders_get`, and `history_deals_get`. That is great for a Windows machine running MT5 locally, but it is not the clean SaaS flow for Mac users logging into a website. SignalBridge keeps those same trading concepts, but sends them through `backend/app/services/mt5_bridge.py` to a cloud bridge/provider instead.
+1. The website runs on the Oracle server.
+2. MetaTrader 5 runs on a Windows VPS or Windows PC.
+3. The included `mt5-local-bridge` service runs on that Windows machine.
+4. The Oracle backend sends checked trade requests to that bridge over HTTP.
+5. The bridge uses the official `MetaTrader5` Python package to talk to the local MetaTrader 5 terminal.
 
-Use a cloud provider that supports MetaTrader 5 account status, positions, history, market data, order checks, and trade execution. MetaApi is one example of this provider style; for SignalBridge, add the account as platform `mt5` and keep the whole flow MetaTrader 5 focused.
+Why this matters: the official MQL5 Python Integration docs say the Python package establishes a connection with the MetaTrader 5 terminal and exposes terminal-backed functions like `account_info`, `terminal_info`, `symbols_get`, `symbol_info_tick`, `order_check`, `order_send`, `positions_get`, `history_orders_get`, and `history_deals_get`. So the free version needs a Windows machine where MT5 is installed and logged in.
 
-You need these from the chosen MT5 bridge provider:
+How to get the Windows machine:
 
-- Provider account/login ID: put this in `Provider account ID`.
-- Provider API token/account token: put this in `Bridge token`.
-- Optional global provider API key: set `MT5_BRIDGE_API_KEY` in `backend/.env` if your provider uses a server-level key.
-- Provider base URL: set `MT5_BRIDGE_BASE_URL` in `backend/.env`.
+1. Easiest hosted option: create a second Oracle Cloud instance using a Windows Server image.
+2. In Oracle Cloud, create a Compute instance.
+3. For image/OS, choose Windows Server 2022 or Windows Server 2025.
+4. Use Remote Desktop/RDP to log into it.
+5. Install MetaTrader 5, Python, and `mt5-local-bridge` on that Windows instance.
+6. Keep that Windows instance running 24/7 so trades can execute.
+7. Lowest-cost local option: use a spare Windows PC, but it must stay awake, online, and logged into MT5.
+8. Do not use the Oracle Linux web server itself for MT5 execution. The official Python integration needs the MetaTrader 5 terminal, which is a Windows desktop app.
 
-Where to find each MT5/bridge value:
+Where to find each MT5 value:
 
-| SignalBridge field | Where to find it with MetaApi | What it looks like |
+| SignalBridge field | Where to find it | What it looks like |
 | --- | --- | --- |
 | `Name` | You make this up inside SignalBridge | `Shawn Demo MT5` |
-| `Provider account ID` | `https://app.metaapi.cloud` -> MetaTrader accounts/accounts list -> open the connected MetaTrader 5 account -> copy its account `id` | Usually a long UUID |
-| `Bridge token` | `https://app.metaapi.cloud` -> API/auth token area in the web app | Long secret API token |
-| `MT5_BRIDGE_API_KEY` | Same MetaApi API/auth token, placed in `backend/.env` on the server | Long secret API token |
-| `MT5_BRIDGE_BASE_URL` | Provider docs. For MetaApi provisioning/account management: `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai` | URL |
+| `MT5 login / bridge account ID` | Broker portal, MT5 title bar/account info, or bridge operator notes | MT5 login number or nickname |
+| `Bridge token` | The `MT5_BRIDGE_API_KEY` secret you set on the bridge and Oracle backend | Long random secret |
+| `MT5_BRIDGE_API_KEY` | You create this secret yourself | Long random secret |
+| `MT5_BRIDGE_BASE_URL` | Public/private URL of the Windows bridge service | `http://WINDOWS_SERVER_IP:8100` |
 | MT5 login | Broker client portal, MT5 app, or broker welcome email | Account number |
 | MT5 server | Broker client portal, MT5 app login screen, or broker welcome email | Server name like `ICMarketsSC-Demo` |
 | MT5 password | Broker client portal or broker welcome email | Trading/master password or investor password |
 
-### Step-by-Step MT5 Setup With MetaApi Example
+### Step-by-Step Free MT5 Setup
 
-Use this when you want a concrete provider flow instead of generic "get a token" instructions.
+Follow this exact flow for each MT5 account:
 
-Easiest MetaApi setup steps:
+1. Start with a demo MetaTrader 5 account first.
+2. Get a Windows VPS or Windows PC that can stay online.
+3. On that Windows machine, install MetaTrader 5 from the broker or from `https://www.metatrader5.com`.
+4. Open MetaTrader 5.
+5. Log in to the demo MT5 account using the broker login number, password, and server name.
+6. Confirm MT5 shows prices moving and the account is connected.
+7. Install Python for Windows from `https://www.python.org/downloads/windows`.
+8. During Python install, check Add Python to PATH.
+9. Open PowerShell.
+10. Install the bridge requirements:
 
-1. Go to `https://app.metaapi.cloud`.
-2. Create a MetaApi account or log in.
-3. Find the API/auth token in the MetaApi web app. MetaApi's docs say the REST API uses an `auth-token` header and that this token is retrieved from the MetaApi web application.
-4. Copy the API/auth token.
-5. Keep the token private.
-6. On the Oracle server, open `backend/.env`.
-7. Paste the token into `MT5_BRIDGE_API_KEY`:
-
-```bash
-MT5_BRIDGE_API_KEY=PASTE_METAAPI_TOKEN_HERE
+```powershell
+cd C:\path\to\telegramcodes\mt5-local-bridge
+python -m pip install -r requirements.txt
 ```
 
-8. Set the provider base URL in `backend/.env`:
+11. Create a long shared bridge secret, such as a random password.
+12. Start the Windows bridge:
 
-```bash
-MT5_BRIDGE_BASE_URL=https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai
+```powershell
+$env:MT5_BRIDGE_API_KEY="PASTE_LONG_RANDOM_SECRET"
+python app.py
 ```
 
-9. In MetaApi, open the MetaTrader accounts or provisioning area.
-10. Click add account, create account, or connect MetaTrader account.
-11. Choose platform `mt5`.
-12. Name: enter a human-readable account name, such as `Shawn Demo MT5`.
-13. Login: enter the MT5 account number from the user's broker.
-14. Password: enter the MT5 password required by MetaApi.
-15. Server: enter the broker server name exactly as the broker shows it.
-16. Magic number: if MetaApi asks, enter a number used only by SignalBridge, such as `20260622`.
-17. Deploy or connect the MetaTrader 5 account.
-18. Wait until MetaApi shows the MT5 account as deployed, connected, or synchronized.
-19. Open that MetaApi account's details page.
-20. Find the account `id`.
-21. Copy the account `id`.
-22. Open SignalBridge.
-23. Go to MT5 Accounts.
-24. Name: enter the same friendly label, such as `Shawn Demo MT5`.
-25. Provider account ID: paste the MetaApi MT5 account `id`.
-26. Bridge token: paste the MetaApi API/auth token.
-27. Click Connect MT5 account.
-28. Click Health check.
-29. Confirm SignalBridge shows connected status, balance/equity, or provider account info.
-30. Open Automation.
-31. Select the Telegram channel.
-32. Select the MT5 account.
-33. Set conservative risk values.
-34. Create the rule.
-35. Send one demo signal and check Trade Intents, Trade History, and Execution Logs.
+13. On the Oracle server, open `backend/.env`.
+14. Set the bridge URL and the same shared secret:
 
-MetaApi provisioning/account-management API base URL from their docs: `https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai`.
+```bash
+MT5_BRIDGE_BASE_URL=http://WINDOWS_SERVER_IP:8100
+MT5_BRIDGE_API_KEY=PASTE_LONG_RANDOM_SECRET
+```
 
-MetaApi trading/client API endpoints are separate from provisioning in their docs. Before live trading, confirm the exact trade/status endpoints and update `backend/app/services/mt5_bridge.py` to match the provider API.
+15. Restart the Oracle backend.
+16. Open SignalBridge.
+17. Go to MT5 Accounts.
+18. Name: enter a friendly label, such as `Shawn Demo MT5`.
+19. MT5 login / bridge account ID: enter the MT5 login number or bridge nickname.
+20. Bridge token: paste the same shared bridge secret.
+21. Click Connect MT5 account.
+22. Click Health check.
+23. Confirm SignalBridge shows connected status, balance/equity, or terminal info.
+24. Open Automation.
+25. Select the Telegram channel.
+26. Select the MT5 account.
+27. Set conservative risk values.
+28. Create the rule.
+29. Send one demo signal and check Trade Intents, Trade History, and Execution Logs.
 
-If you choose a different cloud MT5 provider, use the same MetaTrader 5 pattern:
-
-1. Create provider account.
-2. Copy the provider API key/token.
-3. Add/deploy the user's MetaTrader 5 account inside the provider.
-4. Copy the provider's connected MetaTrader 5 account ID.
-5. Paste provider account ID and token into SignalBridge.
-6. Set `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY`.
-7. Update `backend/app/services/mt5_bridge.py` if that provider's endpoints do not match the current adapter.
+Important free-hosting note: the software path is free, but the bridge still needs a Windows machine/VPS that stays online. If the Windows machine is off, asleep, disconnected, or MT5 is closed, auto trading cannot execute.
 
 ### Step-by-Step MT5 Setup Checklist
 
 Follow this exact flow for each MT5 account:
 
 1. Start with a demo MT5 account first. Do not connect a live account until the full flow has been tested.
-2. Choose the cloud MT5 bridge/provider the business will use.
-3. Create or log into the provider account.
-4. In the provider dashboard, add a MetaTrader account.
-5. Enter the broker name/server, MT5 login number, and the MT5 password required by that provider.
-6. Wait until the provider shows the account as connected, deployed, or synchronized.
-7. Copy the provider's account ID for that connected MT5 account. In SignalBridge, paste it into `Provider account ID`.
-8. Copy the provider API token or account token. In SignalBridge, paste it into `Bridge token`.
-9. On the Oracle server, set provider-wide values in `backend/.env`:
+2. Install and log into MetaTrader 5 on the Windows bridge machine.
+3. Start `mt5-local-bridge` on that same Windows machine.
+4. On the Oracle server, set bridge values in `backend/.env`:
 
 ```bash
-MT5_BRIDGE_BASE_URL=https://YOUR_PROVIDER_API_BASE_URL
-MT5_BRIDGE_API_KEY=YOUR_PROVIDER_SERVER_API_KEY
+MT5_BRIDGE_BASE_URL=http://WINDOWS_SERVER_IP:8100
+MT5_BRIDGE_API_KEY=YOUR_SHARED_BRIDGE_SECRET
 ```
 
-10. Restart the backend service after changing `.env`.
-11. In SignalBridge, open MT5 Accounts and click Connect MT5 account.
-12. Click Health check. The account should show connected status, balance, equity, or any fields the provider returns.
-13. Open Automation, select the Telegram channel and the MT5 account, then create a rule with low demo limits.
-14. Sync a test Telegram message and confirm the Trade Intents, Trade History, and Execution Logs pages show the full decision trail.
+5. Restart the backend service after changing `.env`.
+6. In SignalBridge, open MT5 Accounts and click Connect MT5 account.
+7. Click Health check. The account should show connected status, balance, equity, or terminal info.
+8. Open Automation, select the Telegram channel and the MT5 account, then create a rule with low demo limits.
+9. Sync a test Telegram message and confirm the Trade Intents, Trade History, and Execution Logs pages show the full decision trail.
 
 Current development behavior:
 
 - If `MT5_BRIDGE_API_KEY` is empty, the app uses a mock bridge response so the workflow can be tested safely.
-- Mock bridge mode can create mock trade records, but it does not place real provider orders.
-- To place real trades, configure the real provider URL/key and verify the provider's order schema matches `backend/app/services/mt5_bridge.py`.
+- Mock bridge mode can create mock trade records, but it does not place real MT5 orders.
+- To place real trades, configure `MT5_BRIDGE_BASE_URL`, set `MT5_BRIDGE_API_KEY`, run the Windows bridge, and keep MetaTrader 5 open.
 
 Before live trading:
 
@@ -268,9 +259,9 @@ Before live trading:
 - Keep `require_stop_loss` enabled.
 - Keep max lot and max risk percent low at first.
 - Test with one tiny demo trade.
-- Check the provider dashboard to confirm the order reached the correct MT5 account.
+- Check MetaTrader 5 history to confirm the order reached the correct MT5 account.
 - Check SignalBridge Trade Intents and Execution Logs to confirm why the app allowed or blocked the trade.
-- If the provider uses a different endpoint shape than the default adapter, update `backend/app/services/mt5_bridge.py` before enabling real trading.
+- Keep the Windows bridge URL private or protect it with firewall rules plus the bridge secret.
 
 ### Automation Rule IDs
 
@@ -440,9 +431,9 @@ Then open `http://YOUR_SERVER_IP` in a browser.
 - Set a stable `ENCRYPTION_KEY` generated by `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`.
 - Set a strong `JWT_SECRET`.
 - Configure `ALLOWED_ORIGINS` to the production frontend domain.
-- Configure `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` for the chosen cloud MT5 provider.
+- Configure `MT5_BRIDGE_BASE_URL` and `MT5_BRIDGE_API_KEY` for the self-hosted Windows MT5 bridge.
 - The Telegram service already contains the Telethon session-string flow; verify it against real Telegram app credentials before production use.
-- Keep the MT5 adapter provider-based unless you intentionally add a separate Windows terminal/agent option.
+- Keep MetaTrader 5 open and logged in on the Windows bridge machine before enabling real auto trading.
 
 ## Telegram Setup
 
